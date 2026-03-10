@@ -1,68 +1,41 @@
+@import "tailwindcss";
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --color-primary: #897ce9;
+  --color-secondary: #ff7675;
+  --color-bg: #1a2238;
+  --color-fg: #e6e6ea;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  /* --- Hovers --- */
+  --color-primary-hover: #7a6ad1;
+  --color-secondary-hover: #ff5c5c;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+  /* --- Jsp --- */
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+  /* Thème alternatif */
+  [data-theme="default"] {
+    --color-primary: #897ce9;
+    --color-secondary: #ff7675; 
+    --color-bg: #1a2238;
+    --color-fg: #e6e6ea;
   }
-  a:hover {
-    color: #747bff;
+
+  /* Mode sombre */
+  [data-theme="light"] {
+    --color-primary: #5a67d8;
+    --color-secondary: #ff7675;
+    --color-bg: #e6e6e6;
+    --color-fg: #1a2238;
   }
-  button {
-    background-color: #f9f9f9;
-  }
+}
+
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-bg: var(--color-bg);
+  --color-fg: var(--color-fg);
+
+  /* --- Hovers --- */
+  --color-primary-hover: var(--color-primary-hover);
+  --color-secondary-hover: var(--color-secondary-hover);
 }
