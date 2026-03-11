@@ -1,4 +1,3 @@
-import { cn } from "../../lib/utils";
 
 interface CheckboxProps {
   id: string;
@@ -7,7 +6,6 @@ interface CheckboxProps {
   defaultChecked?: boolean;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
-  className?: string;
 }
 
 export default function Checkbox({
@@ -17,10 +15,9 @@ export default function Checkbox({
   defaultChecked,
   onChange,
   disabled = false,
-  className,
 }: CheckboxProps) {
   return (
-    <div className={cn("flex items-center gap-2", className)}>
+    <div className="flex items-center gap-2">
       <input
         id={id}
         type="checkbox"

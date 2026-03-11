@@ -1,17 +1,14 @@
-import { cn } from "../../lib/utils";
-
 interface ErrorMessageProps {
   message?: string;
-  className?: string;
 }
 
-export default function ErrorMessage({ message, className }: ErrorMessageProps) {
+export default function ErrorMessage({ message }: ErrorMessageProps) {
   if (!message) return null;
 
   return (
     <p
       role="alert"
-      className={cn("text-xs text-red-400 mt-0.5 pl-1", className)}
+      className="text-xs text-red-400 mt-0.5 pl-1"
     >
       {message}
     </p>

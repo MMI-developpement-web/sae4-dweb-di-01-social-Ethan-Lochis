@@ -5,13 +5,11 @@ interface BadgeCnProps {
   children: ReactNode;
   variant?: "default" | "success" | "warning" | "error";
   size?: "sm" | "md" | "lg";
-  className?: string;
 }
 
 export default function BadgeCn({
   variant = "default",
   size = "md",
-  className,
   children,
 }: BadgeCnProps) {
   return (
@@ -28,8 +26,7 @@ export default function BadgeCn({
           "px-2 py-0.5 text-xs": size === "sm",
           "px-2.5 py-0.5 text-xs": size === "md",
           "px-3 py-1 text-sm": size === "lg",
-        },
-        className
+        }
       )}
     >
       {children}

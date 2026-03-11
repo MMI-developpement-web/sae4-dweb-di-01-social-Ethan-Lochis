@@ -1,5 +1,4 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../../lib/utils";
 
 const publisherVariants = cva("inline-flex items-center gap-3", {
   variants: {
@@ -50,7 +49,6 @@ const usernameVariants = cva("font-medium", {
 interface PublisherProps extends VariantProps<typeof publisherVariants>, VariantProps<typeof avatarVariants> {
   username: string;
   avatarUrl?: string;
-  className?: string;
 }
 
 export default function Publisher({
@@ -58,16 +56,15 @@ export default function Publisher({
   avatarUrl,
   size,
   ring,
-  className,
 }: PublisherProps) {
   return (
-    <div className={cn(publisherVariants({ size }), className)}>
+    <div className={publisherVariants({ size })}>
       <img
         src={avatarUrl ?? `https://ui-avatars.com/api/?name=${username}&background=random`}
         alt={`${username}'s avatar`}
-        className={cn(avatarVariants({ size, ring }))}
+        className={avatarVariants({ size, ring })}
       />
-      <span className={cn(usernameVariants({ size }))}>{username}</span>
+      <span className={usernameVariants({ size })}>{username}</span>
     </div>
   );
 }

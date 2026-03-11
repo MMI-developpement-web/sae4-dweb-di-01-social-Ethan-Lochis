@@ -63,9 +63,7 @@
 // }
 
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../../lib/utils";
-import type { ReactNode, ButtonHTMLAttributes } from "react";
-import { IconSpinner } from "./Icons";
+import type { ReactNode } from "react";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none",
@@ -98,8 +96,8 @@ interface ButtonDataProps {
 }
 
 interface ButtonViewProps
-  extends VariantProps<typeof buttonVariants>{
-}
+  extends VariantProps<typeof buttonVariants>,
+    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "className" | "children"> {}
 
 interface ButtonProps extends ButtonDataProps, ButtonViewProps {}
 
@@ -111,9 +109,7 @@ export default function Button({
 }: ButtonProps) {
   return (
     <button
-      className={cn(
-        buttonVariants({ variant, size }),
-      )}
+      className={buttonVariants({ variant, size })}
       {...props}
     >
       {children}

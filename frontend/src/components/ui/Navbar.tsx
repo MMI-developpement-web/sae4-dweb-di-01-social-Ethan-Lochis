@@ -1,11 +1,11 @@
 import { cn } from "../../lib/utils";
 import { IconHome, IconPost } from "./Icons";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 type Tab = "home" | "post" | "profile";
 
 interface NavbarProps {
-  className?: string;
   avatarUrl?: string;
   username?: string;
   defaultTab?: Tab;
@@ -13,63 +13,69 @@ interface NavbarProps {
 }
 
 export default function Navbar({
-  className,
   avatarUrl,
   username = "User",
   defaultTab = "home",
   onTabChange,
 }: NavbarProps) {
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
+  const navigate = useNavigate();
+
+  const routes: Record<Tab, string> = {
+    home: "/",
+    post: "/posting",
+    profile: "/profile",
+  };
 
   function handleTabClick(tab: Tab) {
     setActiveTab(tab);
     onTabChange?.(tab);
+    navigate(routes[tab]);
   }
+
+  const itemClass = (tab: Tab) =>
+    cn(
+      "flex items-center gap-3 rounded-lg p-2 transition-colors cursor-pointer",
+      "lg:w-full lg:px-4 lg:py-3",
+      activeTab === tab ? "text-secondary" : "text-primary hover:text-fg",
+    );
 
   return (
     <nav
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50",
-        "flex items-center justify-around h-16 px-4",
-        "bg-bg border-t border-white/10",
-        className,
+        "fixed z-50 bg-bg",
+        // Mobile : barre en bas
+        "bottom-0 left-0 right-0 flex flex-row items-center justify-around h-16 px-4 border-t border-white/10",
+        // Desktop : sidebar à gauche
+        "lg:top-0 lg:left-0 lg:right-auto lg:bottom-0 lg:flex-col lg:justify-start lg:items-start lg:w-56 lg:h-screen lg:px-4 lg:py-8 lg:gap-2 lg:border-t-0 lg:border-r",
       )}
     >
-      <button
-        onClick={() => handleTabClick("home")}
-        className={cn(
-          "flex items-center justify-center p-2 rounded-lg transition-colors cursor-pointer",
-          activeTab === "home" ? "text-secondary" : "text-primary",
-        )}
-      >
-        <IconHome className="size-6" />
+      <button onClick={() => handleTabClick("home")} className={itemClass("home")}>
+        <IconHome className="size-6 shrink-0" />
+        <span className="hidden lg:inline text-sm font-medium">Accueil</span>
       </button>
 
-      <button
-        onClick={() => handleTabClick("post")}
-        className={cn(
-          "flex items-center justify-center p-2 rounded-lg transition-colors cursor-pointer",
-          activeTab === "post" ? "text-secondary" : "text-primary",
-        )}
-      >
-        <IconPost className="size-6" />
+      <button onClick={() => handleTabClick("post")} className={itemClass("post")}>
+        <IconPost className="size-6 shrink-0" />
+        <span className="hidden lg:inline text-sm font-medium">Publications</span>
       </button>
 
       <button
         onClick={() => handleTabClick("profile")}
         className={cn(
-          "rounded-full transition-all cursor-pointer ring-2",
-          activeTab === "profile" ? "ring-secondary" : "ring-primary",
+          "flex items-center gap-3 cursor-pointer transition-all rounded-lg p-2",
+          "lg:w-full lg:px-4 lg:py-3 hover:text-fg",
         )}
       >
         <img
-          src={
-            avatarUrl ??
-            `https://ui-avatars.com/api/?name=${username}&background=random`
-          }
+          src={avatarUrl ?? `https://ui-avatars.com/api/?name=${username}&background=random`}
           alt={username}
-          className="size-9 rounded-full object-cover"
+          className={cn(
+            "size-9 rounded-full object-cover ring-2 shrink-0",
+            activeTab === "profile" ? "ring-secondary" : "ring-primary",
+          )}
         />
+        <span className="hidden lg:inline text-sm font-medium text-fg truncate">{username}</span>
       </button>
     </nav>
   );

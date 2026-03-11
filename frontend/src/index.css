@@ -4,13 +4,16 @@
   --color-primary: #897ce9;
   --color-secondary: #ff7675;
   --color-bg: #1a2238;
+  --color-bg-lighter: #25304F;
   --color-fg: #e6e6ea;
+  --color-inactive: #707070;
 
   /* --- Hovers --- */
   --color-primary-hover: #7a6ad1;
   --color-secondary-hover: #ff5c5c;
 
-  /* --- Jsp --- */
+  /* --- Bordures --- */
+
 
   /* Thème alternatif */
   [data-theme="default"] {
@@ -33,9 +36,20 @@
   --color-primary: var(--color-primary);
   --color-secondary: var(--color-secondary);
   --color-bg: var(--color-bg);
+  --color-bg-lighter: var(--color-bg-lighter);
   --color-fg: var(--color-fg);
+  --color-inactive: var(--color-inactive);
 
   /* --- Hovers --- */
   --color-primary-hover: var(--color-primary-hover);
   --color-secondary-hover: var(--color-secondary-hover);
+
+  /* --- Font sizes --- */
+  --text-14: 0.875rem;
+  --text-16: 1rem;
+  --text-20: 1.25rem;
+  --text-26: 1.625rem;
+
+  /*  --- Bordures --- */
+  --rounded-sm: 5px;
 }

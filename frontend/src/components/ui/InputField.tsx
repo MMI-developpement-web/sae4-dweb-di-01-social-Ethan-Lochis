@@ -56,7 +56,6 @@ interface InputFieldProps extends VariantProps<typeof inputWrapperVariants> {
   value?: string;
   defaultValue?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  className?: string;
   disabled?: boolean;
 }
 
@@ -69,7 +68,6 @@ export default function InputField({
   value,
   defaultValue,
   onChange,
-  className,
   disabled = false,
 }: InputFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
@@ -87,7 +85,6 @@ export default function InputField({
       className={cn(
         inputWrapperVariants({ variant, isError }),
         disabled && "pointer-events-none opacity-50",
-        className,
       )}
     >
       <config.Icon className="size-5 shrink-0 text-gray-400" />

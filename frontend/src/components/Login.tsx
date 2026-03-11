@@ -40,10 +40,13 @@ const initialState: FormState = {
 
 function formReducer(state: FormState, action: FormAction): FormState {
   switch (action.type) {
+    // Changement des fields , on met a jour l'affichage
     case "SET_FIELD":
       return { ...state, [action.field]: action.value };
+      // Mise à jour des erreurs (après validation)
     case "SET_ERRORS":
       return { ...state, errors: action.errors };
+      // Changement d'onglet : on réinitialise le formulaire
     case "RESET":
       return initialState;
     default:
@@ -59,7 +62,11 @@ function validate(
 ): LoginErrors {
   const errors: LoginErrors = {};
   if (!fields.username.trim()) errors.username = "Ce champ est requis.";
-  if (!isLogin && !fields.email.trim()) errors.email = "Ce champ est requis.";
+  if (!isLogin && !fields.email.trim()) {
+    errors.email = "Ce champ est requis.";
+  } else if (!isLogin && !fields.email.includes("@")) {
+    errors.email = "L'adresse e-mail doit contenir un @.";
+  }
   if (!fields.password) errors.password = "Ce champ est requis.";
   return errors;
 }
@@ -132,7 +139,7 @@ export default function Login() {
       <h2 className="text-fg text-3xl">
         {isLogin ? "Connectez-vous" : "Inscrivez-vous"}
       </h2>
-      <div className="bg-bg flex w-full max-w-sm flex-col gap-6 rounded-lg p-8">
+      <div className="bg-bg-lighter flex w-full max-w-sm flex-col gap-6 rounded-lg p-8 shadow-2xl">
         <AuthTabs isLogin={isLogin} onSwitch={handleTabSwitch} />
 
         <form

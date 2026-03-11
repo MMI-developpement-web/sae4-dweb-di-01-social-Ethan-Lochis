@@ -4,6 +4,10 @@ FROM node:24
 # Set working directory
 WORKDIR /app
 
+# Install dependencies
+COPY frontend/package*.json ./
+RUN npm install
+
 # Expose port
 EXPOSE 5173
 

@@ -1,0 +1,316 @@
+---
+description: Instructions et bonnes pratiques globales — Frontend React/TS + Backend Symfony/PHP
+applyTo: "**"
+---
+
+# Contexte du projet
+
+Réseau social fullstack. Stack :
+- **Frontend** : React + TypeScript + Vite + Tailwind CSS v4
+- **Backend** : Symfony 7.4 + PHP 8.2 (API REST JSON)
+- **Base de données** : MySQL 8
+- **Infrastructure** : Docker (nginx, php-fpm, mysql, phpmyadmin)
+
+---
+
+# Mise à jour de ces instructions
+
+- **À chaque contribution significative** (nouveau composant, nouvelle convention, règle établie), mettre à jour ce fichier pour refléter la décision prise.
+- Ce fichier est la source de vérité du projet : il doit rester synchronisé avec le code réel.
+- Si une règle de ce fichier est contredite par le code après une modification, corriger l'une ou l'autre immédiatement.
+
+---
+
+# Documentation
+
+- Toujours utiliser **Context7** (`use context7`) pour récupérer la documentation officielle et à jour des librairies avant de répondre à une question ou d'implémenter une fonctionnalité. **Aucune exception.**
+- **Frontend** — Librairies principales : `react`, `class-variance-authority`, `tailwind-merge`, `clsx`, `react-router`.
+- **Backend** — Librairies principales : `symfony/framework-bundle`, `doctrine/orm`, `lexik/jwt-authentication-bundle`, `symfony/serializer`, `symfony/security-bundle`.
+
+---
+
+# Architecture des composants
+
+## Séparation des responsabilités
+
+- **Composant UI (dumb)** : reçoit tout via props, aucun `useState`, aucun fetch. Exemples : `Comment`, `Publisher`.
+- **Composant interactif** : gère son propre état interne avec `useState`. Exemples : `Like`, `Reactions`.
+- Ne jamais dupliquer la logique d'état — si un composant A utilise un composant B, laisser B gérer son état.
+
+## Structure des fichiers
+
+```
+src/components/ui/         ← atomes & molécules (génériques)
+  ├── Icons.tsx            ← toutes les icônes SVG exportées
+  ├── Button.tsx           ← atome
+  ├── BadgeCn.tsx          ← atome
+  ├── Label.tsx            ← atome
+  ├── ErrorMessage.tsx     ← atome
+  ├── Checkbox.tsx         ← atome
+  ├── InputField.tsx       ← atome
+  ├── Like.tsx             ← atome interactif
+  ├── FormField.tsx        ← molécule (Label + InputField + ErrorMessage)
+  ├── Publisher.tsx        ← molécule
+  ├── Comment.tsx          ← molécule
+  └── ...
+src/components/            ← organismes / features (spécifiques)
+  ├── Login.tsx
+  └── ...
+src/lib/
+  └── utils.ts             ← fonction cn() (clsx + tailwind-merge)
+```
+
+## Architecture Atomes / Molécules / Organismes
+
+Suivre une architecture inspirée de l'**Atomic Design** pour séparer le générique du spécifique :
+
+### Atomes (`src/components/ui/`)
+Briques de base sans logique métier. Aucun appel API, aucun contexte applicatif.
+Exemples : `Button`, `InputField`, `Label`, `ErrorMessage`, `Checkbox`
+
+### Molécules (`src/components/ui/`)
+Combinaisonsd'atomes formant une unité fonctionnelle réutilisable.
+Exemples : `FormField`, `Comment`, `Publisher`
+
+Le composant `FormField` est le **pattern standard** pour les formulaires — il regroupe `Label` + `InputField` + `ErrorMessage` :
+
+```tsx
+<FormField
+  id="email"
+  label="Adresse e-mail"
+  variant="email"
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  error={errors.email}
+  required
+/>
+```
+
+### Organismes / Features (`src/components/`)
+Composants spécifiques à une feature. Ils peuvent avoir leur propre état (`useState`) et logique.
+Exemples : `Login`, `RegisterForm`, `PostEditor`
+
+> **Règle** : Un organisme ne va **jamais** dans `src/components/ui/`.
+
+---
+
+# Conventions de code
+
+## Variants avec CVA
+
+Toujours utiliser `cva` (class-variance-authority) pour les variants de composants :
+
+```tsx
+const buttonVariants = cva("base-classes", {
+  variants: {
+    variant: { primary: "...", secondary: "..." },
+    size: { sm: "...", md: "...", lg: "..." },
+  },
+  defaultVariants: { variant: "primary", size: "md" },
+});
+
+interface Props extends VariantProps<typeof buttonVariants> {
+  children: ReactNode;
+}
+```
+
+## `className` interdit dans les composants UI
+
+- **Ne jamais** ajouter `className?: string` dans l'interface ou les props d'un composant `src/components/ui/`.
+- Le style est contrôlé **uniquement** via les variants CVA. Si un nouveau style est nécessaire, créer un variant.
+- `cn()` peut être utilisé en interne pour combiner des variants ou des conditions, mais jamais pour exposer un `className` externe.
+
+```tsx
+// ✅ correct
+<button className={buttonVariants({ variant, size })} />
+<button className={cn(buttonVariants({ variant }), disabled && "opacity-50")} />
+
+// ❌ interdit
+<button className={cn(buttonVariants({ variant }), className)} />
+```
+
+## Fusion de classes
+
+Utiliser `cn()` de `lib/utils.ts` pour fusionner des classes conditionnelles en interne :
+
+```tsx
+import { cn } from "../../lib/utils";
+className={cn(buttonVariants({ variant, size }), disabled && "opacity-50")}
+```
+
+## Icônes SVG
+
+Toutes les icônes sont dans `Icons.tsx` avec une prop `className` :
+
+```tsx
+interface IconProps { className?: string; }
+
+export function IconHeart({ className = "size-6" }: IconProps) {
+  return <svg className={className}>...</svg>;
+}
+```
+
+Importer et utiliser la prop `className` pour contrôler taille et couleur :
+
+```tsx
+<IconHeart className={cn("size-5", active ? "stroke-red-500 fill-red-500" : "stroke-gray-600")} />
+```
+
+## Gestion de l'état
+
+- Nommer les handlers `handleXxx` et les définir dans le corps du composant, pas inline.
+- Utiliser la forme fonctionnelle pour les setters interdépendants : `setCount((c) => c + 1)`.
+- Ne jamais imbriquer un setter dans un autre setter (cause des doubles exécutions en StrictMode).
+
+```tsx
+// ✅ correct
+function handleClick() {
+  const next = !active;
+  setActive(next);
+  setCount((c) => (next ? c + 1 : c - 1));
+}
+
+// ❌ incorrect
+setActive((prev) => {
+  setCount(...); // appelé 2x en StrictMode
+  return !prev;
+});
+```
+
+## Props par défaut
+
+Toujours prévoir une prop `defaultXxx` pour initialiser l'état depuis des données externes (BDD) :
+
+```tsx
+defaultLiked?: boolean;  // pour initialiser depuis la BDD
+defaultCount?: number;
+```
+
+---
+
+# Tailwind CSS
+
+- Utiliser les classes natives Tailwind plutôt que les valeurs arbitraires quand possible : `size-4.5` plutôt que `size-[18px]`.
+- Cibler les éléments enfants SVG via `[&>svg]:classe` dans CVA.
+- Pour changer la couleur d'un SVG : utiliser `stroke-xxx` et `fill-xxx` (pas `text-xxx`).
+
+---
+
+# Images & Avatars
+
+- La BDD stocke uniquement le **chemin ou l'URL** de l'image, jamais le fichier binaire.
+- Fallback avatar sans API externe :
+```tsx
+src={avatarUrl ?? `https://ui-avatars.com/api/?name=${username}&background=random`}
+```
+- En production : stocker les images sur un service cloud (Cloudinary, AWS S3) et sauvegarder l'URL en BDD.
+
+---
+
+# Backend — Symfony / PHP
+
+## Structure des fichiers
+
+```
+backend/src/
+  Controller/      ← contrôleurs API REST (suffixe Controller)
+  Entity/          ← entités Doctrine (mapping BDD)
+  Repository/      ← requêtes Doctrine personnalisées
+  Service/         ← logique métier extraite des contrôleurs
+  EventSubscriber/ ← abonnés aux événements Symfony
+  DTO/             ← objets de transfert de données (entrée/sortie API)
+```
+
+## Contrôleurs
+
+- Un contrôleur = une ressource REST (ex. `PostController`, `UserController`).
+- Annoter les routes avec `#[Route]` en attribut PHP 8.
+- Toujours typer les paramètres et le retour (ex. `JsonResponse`).
+- Garder les contrôleurs fins : déléguer la logique aux Services.
+- Retourner systématiquement du JSON via `$this->json(...)` ou `JsonResponse`.
+
+```php
+#[Route('/api/posts', name: 'post_list', methods: ['GET'])]
+public function list(PostRepository $repo): JsonResponse
+{
+    return $this->json($repo->findAll(), 200, [], ['groups' => ['post:read']]);
+}
+```
+
+## Entités Doctrine
+
+- Une entité = une table. Nom au singulier, PascalCase (ex. `Post`, `User`).
+- Toujours déclarer les attributs de mapping avec les attributs PHP 8 (`#[ORM\Column]`, etc.).
+- Utiliser `#[ORM\GeneratedValue]` + `#[ORM\Id]` pour la clé primaire auto-incrémentée.
+- Ajouter des groupes de sérialisation (`#[Groups]`) pour contrôler ce qui est exposé en JSON.
+
+```php
+#[ORM\Entity(repositoryClass: PostRepository::class)]
+class Post
+{
+    #[ORM\Id, ORM\GeneratedValue, ORM\Column]
+    #[Groups(['post:read'])]
+    private ?int $id = null;
+
+    #[ORM\Column(length: 280)]
+    #[Groups(['post:read', 'post:write'])]
+    private string $content;
+}
+```
+
+## API REST — Conventions
+
+| Méthode | Route              | Action            |
+|---------|--------------------|-------------------|
+| GET     | `/api/resource`    | Liste             |
+| GET     | `/api/resource/{id}` | Détail          |
+| POST    | `/api/resource`    | Création          |
+| PATCH   | `/api/resource/{id}` | Mise à jour partielle |
+| DELETE  | `/api/resource/{id}` | Suppression      |
+
+- Réponses de succès : `200 OK`, `201 Created`, `204 No Content`.
+- Réponses d'erreur : `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `422 Unprocessable Entity`.
+- Toujours inclure un message d'erreur lisible dans le JSON d'erreur : `{ "error": "..." }`.
+
+## Authentification JWT
+
+- Utiliser `lexik/jwt-authentication-bundle` pour générer et valider les tokens.
+- Le token est envoyé dans l'en-tête `Authorization: Bearer <token>`.
+- Les routes publiques (login, register) sont exclues du firewall JWT.
+- Ne jamais stocker le token en session côté serveur — l'API est **stateless**.
+
+## Sécurité
+
+- Valider et assainir **toutes** les entrées utilisateur (formulaires, query params, JSON body).
+- Utiliser le composant `symfony/validator` avec les contraintes (`#[Assert\NotBlank]`, etc.).
+- Ne jamais construire de requêtes SQL manuellement — toujours passer par Doctrine.
+- Hasher les mots de passe avec `symfony/password-hasher` (jamais MD5/SHA1).
+- Contrôler les accès avec `#[IsGranted]` ou `$this->denyAccessUnlessGranted(...)`.
+
+## Services
+
+- Extraire toute logique métier non triviale dans un service (`src/Service/`).
+- Les services sont injectés via l'autowiring Symfony (constructeur).
+- Nommer les méthodes de manière explicite : `createPost()`, `followUser()`.
+
+---
+
+# Infrastructure Docker
+
+## Services et ports
+
+| Service         | Port local | Description                   |
+|-----------------|------------|-------------------------------|
+| `sae-nginx`     | 8080       | Proxy backend                 |
+| `sae-nginx`     | 8090       | Proxy frontend                |
+| `sae-frontend`  | 5173       | Dev server Vite               |
+| `sae-backend`   | 9000       | PHP-FPM                       |
+| `sae-mysql`     | (interne)  | MySQL 8                       |
+| `sae-phpmyadmin`| 8070       | Interface phpMyAdmin           |
+
+## Conventions
+
+- Les variables d'environnement backend sont définies dans `backend/.env`.
+- Les variables d'environnement frontend sont définies dans `frontend/.env` (préfixe `VITE_`).
+- Ne jamais commiter de `.env` contenant des secrets — utiliser `.env.local` ou des secrets Docker.
+- Les scripts SQL d'initialisation DB sont dans `docker/mysql/sql_import_scripts/`.

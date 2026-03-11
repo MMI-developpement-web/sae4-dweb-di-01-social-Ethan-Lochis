@@ -1,5 +1,4 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../../lib/utils";
 import { IconHeart } from "./Icons";
 import { useState } from "react";
 
@@ -33,7 +32,6 @@ const likeVariants = cva(
 );
 
 interface LikeProps extends VariantProps<typeof likeVariants> {
-  className?: string;
   onClick?: () => void;
   defaultLiked?: boolean;
   defaultCount?: number;
@@ -43,7 +41,6 @@ export default function Like({
   size,
   background,
   filling = "red",
-  className,
   onClick,
   defaultLiked = false,
   defaultCount = 0,
@@ -62,10 +59,7 @@ export default function Like({
     <div className="inline-flex items-center gap-1">
       <button
         onClick={handleClick}
-        className={cn(
-          likeVariants({ size, background, filling: liked ? filling : "none" }),
-          className,
-        )}
+        className={likeVariants({ size, background, filling: liked ? filling : "none" })}
       >
         <IconHeart className="transition-colors" />
       </button>

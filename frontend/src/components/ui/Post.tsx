@@ -1,0 +1,65 @@
+import { cva } from "class-variance-authority";
+import Like from "./Like";
+
+// --- Variants ---
+const avatarVariants = cva("rounded-full object-cover shrink-0", {
+  variants: {
+    size: {
+      reply: "size-6", // 24px pour les réponses
+      default: "size-10", // 40px pour les Post principaux
+    },
+  },
+  defaultVariants: { size: "default" },
+});
+
+interface PostProps {
+  username: string;
+  avatarUrl?: string;
+  text: string;
+  timestamp?: string;
+  isReply?: boolean;
+}
+
+export default function Post({
+  username,
+  avatarUrl,
+  text,
+  timestamp = "il y a 2h",
+  isReply = false,
+}: PostProps) {
+  return (
+    <figure className="flex items-start gap-3 bg-bg-lighter rounded-sm p-4 shadow-md">
+      {/* --- Colonne gauche : Avatar --- */}
+      <img
+        src={
+          avatarUrl ??
+          `https://ui-avatars.com/api/?name=${username}&background=random`
+        }
+        alt={`${username}'s avatar`}
+        className={avatarVariants({ size: isReply ? "reply" : "default" })}
+      />
+
+      {/* --- Colonne droite : Contenu --- */}
+      <div className="flex flex-col gap-1">
+        {/* Header : pseudo + timestamp */}
+        <div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-fg text-16 font-semibold">
+              {username}
+            </span>
+            <span className="text-14 text-gray-400">{timestamp}</span>
+          </div>
+          <span className="text-inactive text-14 ">@{username}</span>
+        </div>
+
+        {/* Corps du message */}
+        <p className="text-fg text-16 leading-relaxed">{text}</p>
+
+        {/* Footer : actions */}
+        <div className="flex items-center gap-4">
+          <Like size="sm" defaultLiked={false} />
+        </div>
+      </div>
+    </figure>
+  );
+}

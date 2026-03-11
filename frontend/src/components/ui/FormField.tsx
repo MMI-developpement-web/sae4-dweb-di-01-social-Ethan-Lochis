@@ -1,7 +1,6 @@
 import Label from "./Label";
 import InputField from "./InputField";
 import ErrorMessage from "./ErrorMessage";
-import { cn } from "../../lib/utils";
 
 interface FormFieldProps {
   id: string;
@@ -13,7 +12,6 @@ interface FormFieldProps {
   required?: boolean;
   disabled?: boolean;
   placeholder?: string;
-  className?: string;
 }
 
 export default function FormField({
@@ -26,10 +24,9 @@ export default function FormField({
   required = false,
   disabled = false,
   placeholder,
-  className,
 }: FormFieldProps) {
   return (
-    <div className={cn("flex w-full flex-col gap-1", className)}>
+    <div className="flex w-full flex-col gap-1">
       <Label htmlFor={id} required={required}>
         {label}
       </Label>
