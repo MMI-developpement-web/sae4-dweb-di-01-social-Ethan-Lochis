@@ -237,6 +237,12 @@ public function list(PostRepository $repo): JsonResponse
 }
 ```
 
+## Repository Doctrine
+
+- Les requêtes personnalisées (filtres, tris spécifiques avec `findBy` ou `QueryBuilder`) doivent être encapsulées dans des méthodes dédiées du Repository (ex: `findLatest()`).
+- Ne jamais polluer les Contrôleurs ou les Services avec des règles de récupération de données. Le Contrôleur doit simplement appeler `$repository->find...()`.
+- Un Repository ne gère que l'accès aux données (les `SELECT`), il n'a pas la responsabilité d'écrire en base (sauf les méthodes `save` et `remove` par défaut) ou de faire de la logique métier.
+
 ## Entités Doctrine
 
 - Une entité = une table. Nom au singulier, PascalCase (ex. `Post`, `User`).
