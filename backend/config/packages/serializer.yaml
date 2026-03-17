@@ -1,5 +1,2 @@
 framework:
-    serializer:
-        default_context:
-            groups: []
-            circular_reference_handler: __toString
+    serializer: ~

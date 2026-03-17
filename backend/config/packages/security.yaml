@@ -25,9 +25,13 @@ security:
 
             # Configuration pour React (JSON au lieu de formulaire HTML)
             json_login:
-                check_path: app_login # Nom de la route dans ton SecurityController
+                check_path: app_login # Nom de la route dans ton AuthController (/api/login)
                 username_path: username
                 password_path: password
+
+            # Active la vérification automatique du header Authorization: Bearer <token>
+            access_token:
+                token_handler: App\Security\AccessTokenHandler
 
             logout:
                 path: app_logout
@@ -36,6 +40,12 @@ security:
     access_control:
         # Permet d'accéder à la route de login sans être connecté
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        
+        # Enregistrement public (POST /api/users)
+        - { path: ^/api/users$, roles: PUBLIC_ACCESS, methods: [POST] }
+        
+        # Routes API protégées - nécessite authentication
+        - { path: ^/api, roles: ROLE_USER }
         
         # Exemple : Seul un admin peut accéder au back-office
         - { path: ^/admin, roles: ROLE_ADMIN }

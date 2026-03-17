@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use \Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -15,9 +16,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['post:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 22, unique: true)]
+    #[Groups(['post:read'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255, unique: true)]
@@ -37,6 +40,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'Author')]
     private Collection $posts;
+
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?ApiToken $apiToken = null;
 
     public function __construct()
     {
@@ -73,9 +79,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * Méthode obligatoire pour UserInterface
      */
-    public function getUserIdentifier(): string
+     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string) $this->username;
     }
 
     /**
@@ -119,7 +125,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void
     {
-        // Utile si tu stockes des données sensibles temporaires
+        // Utile si on stockes des données sensibles temporaires
     }
 
     /**
@@ -146,6 +152,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $post->setAuthor(null);
             }
         }
+        return $this;
+    }
+
+    public function getApiToken(): ?ApiToken
+    {
+        return $this->apiToken;
+    }
+
+    public function setApiToken(?ApiToken $apiToken): static
+    {
+        // unset the owning side of the relation if necessary
+        if ($apiToken === null && $this->apiToken !== null) {
+            $this->apiToken->setUser(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if ($apiToken !== null && $apiToken->getUser() !== $this) {
+            $apiToken->setUser($this);
+        }
+
+        $this->apiToken = $apiToken;
+
         return $this;
     }
 }
