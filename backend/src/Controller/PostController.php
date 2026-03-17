@@ -18,12 +18,12 @@ class PostController extends AbstractController
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(PostRepository $postRepository): JsonResponse
     {
-        $posts = array_map(
-            $this->serializePost(...),
-            $postRepository->findLatest()
+        return $this->json(
+            $postRepository->findLatest(),
+            200,
+            [],
+            ['groups' => ['post:read']]
         );
-
-        return $this->json($posts);
     }
 
     #[Route('/{id}', name: 'show', requirements: ['id' => '\\d+'], methods: ['GET'])]
@@ -35,7 +35,7 @@ class PostController extends AbstractController
             return $this->json(['error' => 'Post not found.'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        return $this->json($this->serializePost($post));
+        return $this->json($post, 200, [], ['groups' => ['post:read']]);
     }
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request, PostService $postService, #[CurrentUser] ?User $user): JsonResponse
@@ -48,23 +48,9 @@ class PostController extends AbstractController
 
         try {
             $post = $postService->createPost($data, $user);
-            return $this->json($this->serializePost($post), JsonResponse::HTTP_CREATED);
+            return $this->json($post, JsonResponse::HTTP_CREATED, [], ['groups' => ['post:read']]);
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
-    }
-    private function serializePost(Post $post): array
-    {
-        return [
-            'id' => $post->getId(),
-            'textContent' => $post->getTextContent(),
-            'createdAt' => $post->getCreatedAt()?->format(DATE_ATOM),
-            'author' => $post->getAuthor() === null ? null : [
-                'id' => $post->getAuthor()->getId(),
-                'username' => $post->getAuthor()->getUsername(),
-                'email' => $post->getAuthor()->getEmail(),
-                'profilePicture' => $post->getAuthor()->getProfilePicture(),
-            ],
-        ];
     }
 }

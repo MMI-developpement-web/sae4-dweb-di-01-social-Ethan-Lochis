@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\PostRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 
 #[ORM\Entity(repositoryClass: PostRepository::class)]
 class Post
@@ -11,16 +13,23 @@ class Post
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['post:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 510)]
+    #[Groups(['post:read'])]
+    #[SerializedName('textContent')]
     private ?string $TextContent = null;
 
     #[ORM\Column]
+    #[SerializedName('createdAt')]
+    #[Groups(['post:read'])]
     private ?\DateTimeImmutable $CreatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'posts')]
     #[ORM\JoinColumn(nullable: false)]
+    #[SerializedName('author')]
+    #[Groups(['post:read'])]
     private ?User $Author = null;
 
     public function getId(): ?int
