@@ -8,8 +8,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Serializer\Annotation\SerializedName;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -17,23 +15,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['post:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 22, unique: true)]
-    #[Groups(['post:read'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255, unique: true)]
-    #[Groups(['post:read'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 500)]
     private ?string $password = null;
 
     #[ORM\Column(length: 500, nullable: true)]
-    #[Groups(['post:read'])]
-    #[SerializedName('profilePicture')]
     private ?string $profilePicture = null;
 
     #[ORM\Column(type: 'json')]
