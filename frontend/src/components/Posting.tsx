@@ -1,18 +1,44 @@
 import { useState } from "react";
 import Publisher from "./ui/Publisher";
 import Button from "./ui/Button";
+import { apiFetch } from "../lib/api";
+import { useAuth } from "../contexts/AuthContext";
 
-export default function Posting() {
+interface PostingProps {
+  onPostCreated?: () => void;
+}
+
+export default function Posting({ onPostCreated }: PostingProps) {
   const [content, setContent] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   function handleContentChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setContent(e.target.value);
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // TODO: send post to API
-    setContent("");
+    if (!content.trim()) return;
+    
+    setIsSubmitting(true);
+    setError(null);
+    
+    try {
+      await apiFetch('/posts', {
+        method: 'POST',
+        body: JSON.stringify({ textContent: content })
+      });
+      setContent("");
+      if (onPostCreated) {
+        onPostCreated();
+      }
+    } catch (err: any) {
+      setError(err.message || "Erreur lors de la publication.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -20,7 +46,8 @@ export default function Posting() {
       onSubmit={handleSubmit}
       className="flex flex-col gap-4 p-4 rounded-[5px] shadow-2xl bg-bg-lighter w-full max-w-2xl mx-auto"
     >
-      <Publisher username="John Doe" size="md" />
+      <Publisher username={user?.username || "Invité"} size="md" />
+      {error && <div className="text-red-500 text-sm">{error}</div>}
       <textarea
         id="post-text"
         name="post-text"
@@ -35,9 +62,9 @@ export default function Posting() {
           type="submit"
           variant="primary"
           size="md"
-          disabled={content.trim().length === 0}
+          disabled={content.trim().length === 0 || isSubmitting}
         >
-          Publier
+          {isSubmitting ? "Publication..." : "Publier"}
         </Button>
       </div>
     </form>

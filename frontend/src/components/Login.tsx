@@ -1,7 +1,10 @@
 import { useReducer, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Button from "./ui/Button";
 import FormField from "./ui/FormField";
 import { cn } from "../lib/utils";
+import { apiFetch } from "../lib/api";
+import { useAuth } from "../contexts/AuthContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -111,10 +114,14 @@ export default function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [state, dispatch] = useReducer(formReducer, initialState);
   const { username, email, password, errors } = state;
+  const navigate = useNavigate();
+  const { login } = useAuth();
+  const [apiError, setApiError] = useState<string | null>(null);
 
   function handleTabSwitch(login: boolean) {
     setIsLogin(login);
     dispatch({ type: "RESET" });
+    setApiError(null);
   }
 
   function handleField(field: "username" | "email" | "password") {
@@ -122,15 +129,44 @@ export default function Login() {
       dispatch({ type: "SET_FIELD", field, value: e.target.value });
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setApiError(null);
     const newErrors = validate({ username, email, password }, isLogin);
     if (Object.keys(newErrors).length > 0) {
       dispatch({ type: "SET_ERRORS", errors: newErrors });
       return;
     }
     dispatch({ type: "SET_ERRORS", errors: {} });
-    // TODO: appel API
+    
+    try {
+      if (isLogin) {
+        // Login API Call
+        const response = await apiFetch<{ token: string, user: any }>('/login', {
+          method: 'POST',
+          body: JSON.stringify({ username, password })
+        });
+        login(response.token, response.user);
+        navigate('/');
+      } else {
+        // Register API Call
+        await apiFetch('/users', {
+          method: 'POST',
+          body: JSON.stringify({ username, email, password })
+        });
+        
+        // After successfull register, we can automatically log in
+        const response = await apiFetch<{ token: string, user: any }>('/login', {
+          method: 'POST',
+          body: JSON.stringify({ username, password })
+        });
+        
+        login(response.token, response.user);
+        navigate('/');
+      }
+    } catch (err: any) {
+      setApiError(err.message || 'Une erreur est survenue.');
+    }
   }
 
   return (
@@ -141,6 +177,12 @@ export default function Login() {
       </h2>
       <div className="bg-bg-lighter flex w-full max-w-sm flex-col gap-6 rounded-lg p-8 shadow-2xl">
         <AuthTabs isLogin={isLogin} onSwitch={handleTabSwitch} />
+
+        {apiError && (
+          <div className="p-3 bg-red-500/10 border border-red-500 text-red-500 rounded text-sm text-center">
+            {apiError}
+          </div>
+        )}
 
         <form
           onSubmit={handleSubmit}

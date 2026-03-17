@@ -1,7 +1,12 @@
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/ui/Navbar";
 import Posting from "../components/Posting";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function PostingPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
   return (
     <div data-theme="default" className="bg-bg min-h-screen">
       <header className="lg:pl-56 flex justify-start items-start bg-bg border-b border-white/10 px-4 py-3">
@@ -10,11 +15,11 @@ export default function PostingPage() {
 
       <main className="pb-20 lg:pb-0 lg:pl-56">
         <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4 text-fg">
-          <Posting />
+          <Posting onPostCreated={() => navigate('/')} />
         </div>
       </main>
 
-      <Navbar username="John Doe" defaultTab="post" />
+      <Navbar username={user?.username || "Invité"} defaultTab="post" />
     </div>
   );
 }
