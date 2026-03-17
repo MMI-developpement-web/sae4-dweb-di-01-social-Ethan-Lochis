@@ -18,7 +18,22 @@ security:
         dev:
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
-        
+            
+        # Nouveau firewall pour EasyAdmin
+        admin:
+            pattern: ^/admin
+            lazy: true
+            provider: app_user_provider
+            form_login:
+                login_path: admin_login
+                check_path: admin_login
+                default_target_path: admin_dashboard
+                enable_csrf: true
+            logout:
+                path: admin_logout
+                target: admin_login
+
+        # Firewall actuel pour ton API React (JSON et JWT token)
         main:
             lazy: true
             provider: app_user_provider
@@ -38,6 +53,9 @@ security:
 
     # 4. Contrôle d'accès
     access_control:
+        # Permet de voir la page de connexion admin
+        - { path: ^/admin/login, roles: PUBLIC_ACCESS }
+        
         # Permet d'accéder à la route de login sans être connecté
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         
