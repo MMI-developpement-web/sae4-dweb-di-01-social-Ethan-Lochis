@@ -47,7 +47,7 @@ export default function Navbar({
         // Mobile : barre en bas
         "bottom-0 left-0 right-0 flex flex-row items-center justify-around h-16 px-4 border-t border-white/10",
         // Desktop : sidebar à gauche
-        "lg:top-0 lg:left-0 lg:right-auto lg:bottom-0 lg:flex-col lg:justify-start lg:items-start lg:w-56 lg:h-screen lg:px-4 lg:py-8 lg:gap-2 lg:border-t-0 lg:border-r",
+        "lg:shadow-2xl lg:top-0 lg:left-0 lg:right-auto lg:bottom-0 lg:flex-col lg:justify-start lg:items-start lg:w-56 lg:h-screen lg:px-4 lg:py-8 lg:gap-2",
       )}
     >
       <button onClick={() => handleTabClick("home")} className={itemClass("home")}>

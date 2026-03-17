@@ -1,6 +1,7 @@
 import { cva } from "class-variance-authority";
 import Like from "./Like";
 
+
 // --- Variants ---
 const avatarVariants = cva("rounded-full object-cover shrink-0", {
   variants: {
