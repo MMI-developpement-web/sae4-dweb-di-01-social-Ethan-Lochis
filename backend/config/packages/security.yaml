@@ -56,13 +56,14 @@ security:
         # Permet de voir la page de connexion admin
         - { path: ^/admin/login, roles: PUBLIC_ACCESS }
         
-        # Permet d'accéder à la route de login sans être connecté
+        # Routes API publiques
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        
-        # Enregistrement public (POST /api/users)
         - { path: ^/api/users$, roles: PUBLIC_ACCESS, methods: [POST] }
         
-        # Routes API protégées - nécessite authentication
+        # GET sur /api/posts est public (lecture des posts)
+        - { path: ^/api/posts, roles: PUBLIC_ACCESS, methods: [GET] }
+        
+        # Autres routes API nécessitent authentification
         - { path: ^/api, roles: ROLE_USER }
         
         # Exemple : Seul un admin peut accéder au back-office

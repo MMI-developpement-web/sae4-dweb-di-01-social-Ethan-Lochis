@@ -2,6 +2,7 @@ import { useReducer, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "./ui/Button";
 import FormField from "./ui/FormField";
+import { IconSpinner } from "./ui/Icons";
 import { cn } from "../lib/utils";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
@@ -70,7 +71,15 @@ function validate(
   } else if (!isLogin && !fields.email.includes("@")) {
     errors.email = "L'adresse e-mail doit contenir un @.";
   }
-  if (!fields.password) errors.password = "Ce champ est requis.";
+  if (!fields.password) {
+    errors.password = "Ce champ est requis.";
+  } else if (!isLogin) {
+    // 8 car. min, 1 Majuscule, 1 Minuscule, 1 chiffre, 1 caractère spécial
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+    if (!passwordRegex.test(fields.password)) {
+      errors.password = "Critères de sécurité non respectés.";
+    }
+  }
   return errors;
 }
 
@@ -108,6 +117,45 @@ function AuthTabs({ isLogin, onSwitch }: AuthTabsProps) {
   );
 }
 
+// ─── Barre de force du mot de passe ───────────────────────────────────────────
+
+function PasswordStrengthBar({ password }: { password?: string }) {
+  if (!password) return null;
+  
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/(?=.*[a-z])/.test(password) && /(?=.*[A-Z])/.test(password)) score++;
+  if (/(?=.*\d)/.test(password)) score++;
+  if (/(?=.*[\W_])/.test(password)) score++;
+
+  let colorClass = "bg-red-500";
+  let widthClass = "w-1/4";
+
+  if (score === 2) {
+    colorClass = "bg-orange-500";
+    widthClass = "w-2/4";
+  } else if (score === 3) {
+    colorClass = "bg-yellow-500";
+    widthClass = "w-3/4";
+  } else if (score === 4) {
+    colorClass = "bg-green-500";
+    widthClass = "w-full";
+  }
+
+  return (
+    <div className="-mt-2 mb-2 flex flex-col gap-1.5 px-1">
+      <div className="h-1.5 w-full bg-fg/10 rounded-full overflow-hidden">
+        <div className={cn("h-full transition-all duration-300", colorClass, widthClass)} />
+      </div>
+      <span className="text-xs text-fg/60">
+        {score < 4 
+          ? "Requis : 8+ car, 1 maj, 1 min, 1 chiffre, 1 spécial." 
+          : "Mot de passe fort et valide"}
+      </span>
+    </div>
+  );
+}
+
 // ─── Composant principal ──────────────────────────────────────────────────────
 
 export default function Login() {
@@ -117,6 +165,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [apiError, setApiError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleTabSwitch(login: boolean) {
     setIsLogin(login);
@@ -138,6 +187,7 @@ export default function Login() {
       return;
     }
     dispatch({ type: "SET_ERRORS", errors: {} });
+    setIsSubmitting(true);
     
     try {
       if (isLogin) {
@@ -166,12 +216,14 @@ export default function Login() {
       }
     } catch (err: any) {
       setApiError(err.message || 'Une erreur est survenue.');
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
   return (
     <>
-      <h1 className="text-secondary text-4xl font-bold">Kontakt</h1>
+      <img src="./Logo.png" alt="Logo de KONTAKT" className="w-2/3 my-22"/>
       <h2 className="text-fg text-3xl">
         {isLogin ? "Connectez-vous" : "Inscrivez-vous"}
       </h2>
@@ -216,9 +268,22 @@ export default function Login() {
             value={password}
             onChange={handleField("password")}
             error={errors.password}
+            disabled={isSubmitting}
             required
           />
-          <Button>{isLogin ? "Se connecter" : "Créer un compte"}</Button>
+          {!isLogin && <PasswordStrengthBar password={password} />}
+          <Button disabled={isSubmitting}>
+            {isSubmitting ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="text-fg [&>svg]:size-4">
+                  <IconSpinner />
+                </span>
+                {isLogin ? "Connexion..." : "Création..."}
+              </span>
+            ) : (
+              isLogin ? "Se connecter" : "Créer un compte"
+            )}
+          </Button>
         </form>
       </div>
     </>
