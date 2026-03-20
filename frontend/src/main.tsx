@@ -25,7 +25,10 @@ const router = createBrowserRouter([
     path: "*",
     element: <NotFound />,
   },
-]);
+], {
+  // Cette ligne est LA clé : elle récupère le chemin que tu passeras au build
+  basename: import.meta.env.BASE_URL 
+});
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

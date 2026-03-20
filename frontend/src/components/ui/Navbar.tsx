@@ -2,6 +2,7 @@ import { cn } from "../../lib/utils";
 import { IconHome, IconPost } from "./Icons";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 type Tab = "home" | "post" | "profile";
 
@@ -20,11 +21,12 @@ export default function Navbar({
 }: NavbarProps) {
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const routes: Record<Tab, string> = {
     home: "/",
     post: "/posting",
-    profile: "/profile",
+    profile: isAuthenticated ? "/profile" : "/Auth",
   };
 
   function handleTabClick(tab: Tab) {

@@ -11,7 +11,7 @@ export default function NotFound() {
     <div data-theme="default" className="bg-bg min-h-screen flex flex-col">
       <header className="lg:pl-56 flex justify-start items-start bg-bg border-b border-white/10 px-4 py-3">
         <img 
-          src="/Logo.png" 
+          src="./Logo.png" 
           alt="Kontakt logo" 
           className="h-24 w-auto cursor-pointer" 
           onClick={() => navigate('/')}

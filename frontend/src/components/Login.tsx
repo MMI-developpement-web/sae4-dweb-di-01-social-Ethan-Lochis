@@ -223,7 +223,7 @@ export default function Login() {
 
   return (
     <>
-      <img src="./Logo.png" alt="Logo de KONTAKT" className="w-2/3 my-22"/>
+      <img src="./Logo.png" alt="Logo de KONTAKT" className="w-1/2 my-22"/>
       <h2 className="text-fg text-3xl">
         {isLogin ? "Connectez-vous" : "Inscrivez-vous"}
       </h2>
