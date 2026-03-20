@@ -37,9 +37,9 @@ class PostRepository extends ServiceEntityRepository
     /**
      * @return Post[] Returns an array of Post objects ordered by ID descending
      */
-    public function findLatest(): array
+    public function findLatest(?int $limit = null, ?int $offset = null): array
     {
-        return $this->findBy([], ['id' => 'DESC']);
+        return $this->findBy([], ['id' => 'DESC'], $limit, $offset);
     }
 
     /**

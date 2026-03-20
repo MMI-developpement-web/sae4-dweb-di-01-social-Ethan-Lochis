@@ -17,10 +17,13 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 class PostController extends AbstractController
 {
     #[Route('', name: 'list', methods: ['GET'])]
-    public function list(PostRepository $postRepository): JsonResponse
+    public function list(Request $request, PostRepository $postRepository): JsonResponse
     {
+        $limit = $request->query->getInt('limit', 7);
+        $offset = $request->query->getInt('offset', 0);
+
         return $this->json(
-            $postRepository->findLatest(),
+            $postRepository->findLatest($limit, $offset),
             200,
             [],
             ['groups' => ['post:read']]

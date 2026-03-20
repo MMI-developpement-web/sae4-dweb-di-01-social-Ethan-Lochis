@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Navbar from "../components/ui/Navbar";
 import Posting from "../components/Posting";
 import Post from "../components/ui/Post";
@@ -18,23 +18,62 @@ interface PostType {
 export default function Home() {
   const [posts, setPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const { user } = useAuth();
+  const limit = 7;
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async (reset = false) => {
+    if (loadingMore || (!reset && loading) || (!hasMore && !reset)) return;
+    
+    // In order to avoid stale closures with offset, we'll use a functional update or refs.
+    // However, with useCallback and correct dependencies, this works.
+    const currentOffset = reset ? 0 : offset;
+    
+    if (reset) {
+      setLoading(true);
+      setHasMore(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
-      const data = await apiFetch<PostType[]>('/posts');
-      setPosts(data);
+      const data = await apiFetch<PostType[]>(`/posts?limit=${limit}&offset=${currentOffset}`);
+      if (data.length < limit) {
+        setHasMore(false);
+      }
+      setPosts((prev) => reset ? data : [...prev, ...data]);
+      setOffset(currentOffset + limit);
     } catch (err: any) {
       setError(err.message || 'Erreur lors du chargement des posts');
     } finally {
-      setLoading(false);
+      if (reset) setLoading(false);
+      setLoadingMore(false);
     }
-  };
+  }, [offset, hasMore, loadingMore, loading]);
 
   useEffect(() => {
-    fetchPosts();
+    fetchPosts(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Check if we are close to the bottom
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+        fetchPosts(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [fetchPosts]);
+
+  const handlePostCreated = () => {
+    fetchPosts(true);
+  };
 
   return (
     <div data-theme="default" className="bg-bg min-h-screen">
@@ -47,7 +86,7 @@ export default function Home() {
       <main className="pb-20 lg:pb-0 lg:pl-56">
         <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4 text-fg">
           <div className="hidden sm:block">
-            <Posting onPostCreated={fetchPosts} />
+            <Posting onPostCreated={handlePostCreated} />
           </div>
 
           <div className="flex flex-col gap-3">
@@ -68,6 +107,9 @@ export default function Home() {
                   timestamp={new Date(post.CreatedAt).toLocaleDateString()}
                 />
             ))}
+            
+            {loadingMore && <p className="text-center text-fg/60 py-4">Chargement de plus de posts...</p>}
+            {!hasMore && posts.length > 0 && <p className="text-center text-fg/60 py-4">Vous avez vu tous les posts.</p>}
           </div>
         </div>
       </main>
