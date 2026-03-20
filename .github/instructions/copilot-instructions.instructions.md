@@ -301,6 +301,92 @@ class Post
 
 ---
 
+# Pages et Routes Frontend
+
+## Pages créées (`src/Routes/`)
+
+| Page      | Route    | Description                                          |
+|-----------|----------|------------------------------------------------------|
+| `Auth`    | `/Auth`  | Authentification (Login + Register)                  |
+| `Home`    | `/`      | Timeline globale avec tous les posts                 |
+| `Profile` | `/profile` | Page profil utilisateur (protégée) avec ses posts   |
+| `PostingPage` | `/posting` | Formulaire de création de post               |
+| `NotFound` | `*`     | Page 404 catch-all                                   |
+
+## Composants de Page / Organismes
+
+- **`Profile.tsx`** : Page profil utilisateur. Récupère les posts via `/posts/user/{id}`, affiche `ProfileHeader` + liste des posts. **Protégée** - redirige vers `/Auth` si non-authentifié.
+- **`Home.tsx`** : Timeline globale. Fetch tous les posts via `/posts`, affiche composant `Posting` (formulaire) + liste de posts.
+- **`Posting.tsx`** (organisme spécifique) : Formulaire interactif de création de post.
+
+## Composants UI - Molécules nouvelles
+
+- **`ProfileHeader.tsx`** : Molécule affichant l'avatar, username (via `Publisher`), et 3 statistiques (Posts, Abonnements, Abonnés). Inclut un menu déroulant accessible via `IconSettings` avec bouton de déconnexion (`IconLogout`).
+- **`Publisher.tsx`** : Molécule réutilisable (avatar + username). Supports variants `size` (sm/md/lg) et `ring` (none/default/primary/secondary).
+
+---
+
+# Authentification et Contexte
+
+## AuthContext (`src/contexts/AuthContext.tsx`)
+
+- **Lazy initialization** : L'état (`token` et `user`) est initialisé depuis le `localStorage` **au moment de la création** du composant, via des fonctions d'initialisation passées à `useState()`. Cela évite les race conditions lors de la restauration de session.
+- Structure : 
+  ```tsx
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [user, setUser] = useState<User | null>(() => {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  });
+  ```
+- Cela garantit que `user` n'est **jamais** `null` pendant une fraction de seconde (évite les faux redirects vers `/Auth`).
+
+## Protocole de protection des routes
+
+- Les pages protégées (ex. `/profile`) redirigent vers `/Auth` si `!user` au premier rendu du composant via un `useEffect`.
+- La redirection utilise `useNavigate()` de React Router avec `{ replace: true }`.
+
+---
+
+# API REST Backend
+
+## Routes Utilisateurs & Posts
+
+### Posts Controller (`backend/src/Controller/PostController.php`)
+
+| Méthode | Route              | Description                         |
+|---------|-------------------|-------------------------------------|
+| GET     | `/api/posts`      | Liste tous les posts (derniers en premier) |
+| GET     | `/api/posts/{id}` | Détail d'un post                    |
+| GET     | `/api/posts/user/{userId}` | Posts d'un utilisateur spécifique (ordonnés DESC par ID) |
+| POST    | `/api/posts`      | Créer un post (auth requise)       |
+
+### PostRepository (`backend/src/Repository/PostRepository.php`)
+
+- **`findLatest()`** : Retourne tous les posts triés DESC par ID.
+- **`findByAuthor(int $authorId)`** : Retourne tous les posts d'un auteur spécifique, triés DESC.
+
+### Entité Post
+
+- **Propriété** `Author` : Relation `ManyToOne` vers `User`.
+- **Sérialisation** : Groupe `post:read` expose `id`, `TextContent`, `CreatedAt`, `Author` (id, username).
+
+---
+
+# Authentification JWT et Token Management
+
+## TokenManager (`backend/src/Service/TokenManager.php`)
+
+- **`generateAndSaveToken(User $user)`** : Génère un token aléatoire (32 bytes hex), supprime l'ancien token de l'utilisateur (si présent), crée une entité `ApiToken`, et la persiste en BDD.
+- **Cascade** : La relation `User` → `ApiToken` utilise `cascade: ['persist']` uniquement (**pas** `cascade: ['remove']` pour éviter les violations de contrainte FK).
+
+## ApiToken Entity
+
+- **Relation** : `OneToOne(inversedBy: 'apiToken')` avec `User` côté inverse.
+- **Important** : **Ne pas** mettre `cascade: ['remove']` sur la relation `User` côté `ApiToken` — cela causait des erreurs 500 lors du login (tentative de supprimer l'utilisateur quand on supprime son token).
+
+---
+
 # Infrastructure Docker
 
 ## Services et ports

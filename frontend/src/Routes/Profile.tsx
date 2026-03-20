@@ -5,6 +5,7 @@ import Post from "../components/ui/Post";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
 import { IconSpinner } from "../components/ui/Icons";
+import { useNavigate } from "react-router-dom";
 
 interface PostType {
   id: number;
@@ -20,7 +21,13 @@ export default function Profile() {
   const [posts, setPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/Auth");
+  };
 
   useEffect(() => {
   const fetchUserPosts = async () => {
@@ -56,6 +63,7 @@ export default function Profile() {
             postCount={posts.length}
             followingCount={0} // Mocké temporairement !
             followerCount={0} // Mocké temporairement !
+            onLogout={handleLogout}
           />
         ) : (
           <div className="p-8 text-center text-gray-500">
