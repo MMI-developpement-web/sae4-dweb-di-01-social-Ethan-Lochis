@@ -4,6 +4,7 @@ import Posting from "../components/Posting";
 import Post from "../components/ui/Post";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
+import { RefreshIcon } from "../components/ui/Icons";
 
 interface PostType {
   id: number;
@@ -19,40 +20,46 @@ export default function Home() {
   const [posts, setPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const { user } = useAuth();
   const limit = 7;
 
-  const fetchPosts = useCallback(async (reset = false) => {
-    if (loadingMore || (!reset && loading) || (!hasMore && !reset)) return;
-    
-    // In order to avoid stale closures with offset, we'll use a functional update or refs.
-    // However, with useCallback and correct dependencies, this works.
-    const currentOffset = reset ? 0 : offset;
-    
-    if (reset) {
-      setLoading(true);
-      setHasMore(true);
-    } else {
-      setLoadingMore(true);
-    }
+  const fetchPosts = useCallback(
+    async (reset = false) => {
+      if (loadingMore || (!reset && loading) || (!hasMore && !reset)) return;
 
-    try {
-      const data = await apiFetch<PostType[]>(`/posts?limit=${limit}&offset=${currentOffset}`);
-      if (data.length < limit) {
-        setHasMore(false);
+      // In order to avoid stale closures with offset, we'll use a functional update or refs.
+      // However, with useCallback and correct dependencies, this works.
+      const currentOffset = reset ? 0 : offset;
+
+      if (reset) {
+        setLoading(true);
+        setHasMore(true);
+      } else {
+        setLoadingMore(true);
       }
-      setPosts((prev) => reset ? data : [...prev, ...data]);
-      setOffset(currentOffset + limit);
-    } catch (err: any) {
-      setError(err.message || 'Erreur lors du chargement des posts');
-    } finally {
-      if (reset) setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [offset, hasMore, loadingMore, loading]);
+
+      try {
+        const data = await apiFetch<PostType[]>(
+          `/posts?limit=${limit}&offset=${currentOffset}`,
+        );
+        if (data.length < limit) {
+          setHasMore(false);
+        }
+        setPosts((prev) => (reset ? data : [...prev, ...data]));
+        setOffset(currentOffset + limit);
+      } catch (err: any) {
+        setError(err.message || "Erreur lors du chargement des posts");
+      } finally {
+        if (reset) setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [offset, hasMore, loadingMore, loading],
+  );
 
   useEffect(() => {
     fetchPosts(true);
@@ -62,17 +69,26 @@ export default function Home() {
   useEffect(() => {
     const handleScroll = () => {
       // Check if we are close to the bottom
-      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 500
+      ) {
         fetchPosts(false);
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [fetchPosts]);
 
   const handlePostCreated = () => {
     fetchPosts(true);
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchPosts(true);
+    setIsRefreshing(false);
   };
 
   return (
@@ -90,26 +106,50 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-3">
-            <h1 className="text-26 font-semibold my-2">Votre fil d'actualité</h1>
-            
-            {loading && <p className="text-center text-fg/60">Chargement des posts...</p>}
+            <div className="flex items-center justify-between">
+              <h1 className="text-26 font-semibold my-2">
+                Votre fil d'actualité
+              </h1>
+              <button 
+                onClick={handleRefresh} 
+                disabled={isRefreshing}
+                className="p-2 hover:bg-white/5 rounded-full transition-colors"
+                aria-label="Rafraîchir"
+              >
+                <RefreshIcon isSpinning={isRefreshing} />
+              </button>
+            </div>
+            {loading && posts.length === 0 && (
+              <p className="text-center text-fg/60">Chargement des posts...</p>
+            )}
             {error && <p className="text-center text-red-500">{error}</p>}
-            
+
             {!loading && !error && posts.length === 0 && (
-              <p className="text-center text-fg/60">Aucun post pour le moment.</p>
+              <p className="text-center text-fg/60">
+                Aucun post pour le moment.
+              </p>
             )}
 
-            {!loading && !error && posts.map((post) => (
+            {!error &&
+              posts.map((post) => (
                 <Post
                   key={post.id}
                   username={post.Author.username}
                   text={post.TextContent}
                   timestamp={new Date(post.CreatedAt).toLocaleDateString()}
                 />
-            ))}
-            
-            {loadingMore && <p className="text-center text-fg/60 py-4">Chargement de plus de posts...</p>}
-            {!hasMore && posts.length > 0 && <p className="text-center text-fg/60 py-4">Vous avez vu tous les posts.</p>}
+              ))}
+
+            {loadingMore && (
+              <p className="text-center text-fg/60 py-4">
+                Chargement de plus de posts...
+              </p>
+            )}
+            {!hasMore && posts.length > 0 && (
+              <p className="text-center text-fg/60 py-4">
+                Vous avez vu tous les posts.
+              </p>
+            )}
           </div>
         </div>
       </main>
