@@ -159,10 +159,11 @@ export function IconEyeSlash({ className = "size-6" }: IconProps) {
   );
 }
 
-export function IconSpinner({}: IconProps) {
+export function IconSpinner({ className = "size-6" }: IconProps) {
   return (
     <svg
-      fill="#FF7675FF"
+      className={className}
+      fill="currentColor"
       viewBox="0 0 24 24"
       xmlns="http://www.w3.org/2000/svg"
     >

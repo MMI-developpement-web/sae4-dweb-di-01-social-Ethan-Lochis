@@ -110,4 +110,26 @@ class PostController extends AbstractController
 
         return $this->json($result, JsonResponse::HTTP_OK);
     }
+
+    #[Route('/{id}', name: 'delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function delete(int $id, PostRepository $postRepository, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (null === $user) {
+            return $this->json(['error' => 'Vous devez être connecté pour supprimer un post.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $post = $postRepository->find($id);
+
+        if ($post === null) {
+            return $this->json(['error' => 'Post not found.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        if ($post->getAuthor() !== $user) {
+            return $this->json(['error' => 'Vous n\'êtes pas autorisé à supprimer ce post.'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        $postRepository->remove($post, true);
+
+        return $this->json(null, JsonResponse::HTTP_NO_CONTENT);
+    }
 }

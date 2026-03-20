@@ -93,11 +93,15 @@ export default function Home() {
     setIsRefreshing(false);
   };
 
+  const handlePostDeleted = (deletedId: number) => {
+    setPosts(prev => prev.filter(post => post.id !== deletedId));
+  };
+
   return (
     <div data-theme="default" className="bg-bg min-h-screen">
-      <header className="lg:pl-56 flex justify-start items-start bg-bg border-b border-white/10 py-3 ">
+      <header className="lg:pl-56 flex justify-start items-start bg-bg border-b border-white/10 p-3 ">
         <div>
-          <img src="./Logo.png" alt="Kontakt logo" className="h-24 w-auto" />
+          <img src="./Logo.png" alt="Kontakt logo" className="max-h-8 lg:max-h-16 w-auto" />
         </div>
       </header>
 
@@ -142,6 +146,7 @@ export default function Home() {
                   timestamp={new Date(post.CreatedAt).toLocaleDateString()}
                   likesCount={post.likesCount}
                   likedByCurrentUser={post.isLikedByCurrentUser}
+                  onDelete={handlePostDeleted}
                 />
               ))}
 

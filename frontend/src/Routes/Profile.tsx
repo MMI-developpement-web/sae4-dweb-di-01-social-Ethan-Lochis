@@ -31,6 +31,10 @@ export default function Profile() {
     navigate("/Auth");
   };
 
+  const handlePostDeleted = (deletedId: number) => {
+    setPosts(prev => prev.filter(post => post.id !== deletedId));
+  };
+
   useEffect(() => {
   const fetchUserPosts = async () => {
     if (!user) {
@@ -110,6 +114,7 @@ export default function Profile() {
                   likesCount={post.likesCount}
                   likedByCurrentUser={post.isLikedByCurrentUser}
                   background="darker"
+                  onDelete={handlePostDeleted}
                 />
               ))}
             </div>

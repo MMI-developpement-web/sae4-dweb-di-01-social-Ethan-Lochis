@@ -4,6 +4,8 @@ import { apiFetch } from "../../lib/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { cn } from "../../lib/utils";
+import { useState } from "react";
+import ConfirmModal from "./ConfirmModal";
 
 // --- Variants ---
 const avatarVariants = cva("rounded-full object-cover shrink-0", {
@@ -30,6 +32,7 @@ interface PostProps {
   likesCount?: number;
   likedByCurrentUser?: boolean;
   background?: "default" | "darker";
+  onDelete?: (id: number) => void;
 }
 
 export default function Post({
@@ -42,9 +45,12 @@ export default function Post({
   likesCount = 0,
   likedByCurrentUser = false,
   background = "default",
+  onDelete,
 }: PostProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const backgroundClasses = {
     default: "bg-bg-lighter",
@@ -65,8 +71,22 @@ export default function Post({
     }
   };
 
+  const handleDelete = async () => {
+    if (!id || isDeleting) return;
+    
+    setIsDeleting(true);
+    try {
+      await apiFetch(`/posts/${id}`, { method: "DELETE" });
+      onDelete?.(id);
+      setIsModalOpen(false);
+    } catch (e) {
+      console.error("Erreur lors de la suppression:", e);
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <figure className={cn("flex items-start gap-3 rounded-sm p-4 shadow-md", backgroundClasses[background])}>
+    <figure className={cn("flex items-start gap-3 rounded-sm p-4 shadow-md w-full", backgroundClasses[background])}>
 
       {/* --- Colonne gauche : Avatar --- */}
       <img
@@ -79,7 +99,7 @@ export default function Post({
       />
 
       {/* --- Colonne droite : Contenu --- */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 w-full">
         {/* Header : pseudo + timestamp */}
         <div>
           <div className="flex items-baseline gap-2">
@@ -93,15 +113,35 @@ export default function Post({
         <p className="text-fg text-16 leading-relaxed">{text}</p>
 
         {/* Footer : actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 w-full">
           <Like
             size="sm"
             defaultLiked={likedByCurrentUser}
             defaultCount={likesCount}
             onClick={handleLike}
           />
+          {user?.username === username && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              disabled={isDeleting}
+              className="text-14 text-red-500 hover:text-red-600 transition-colors ml-auto disabled:opacity-50"
+            >
+              {isDeleting ? "Suppression..." : "Supprimer"}
+            </button>
+          )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={isModalOpen}
+        title="Supprimer la publication"
+        description="Êtes-vous sûr de vouloir supprimer définitivement cette publication ? Cette action est irréversible."
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onConfirm={handleDelete}
+        onCancel={() => setIsModalOpen(false)}
+        isLoading={isDeleting}
+      />
     </figure>
   );
 }

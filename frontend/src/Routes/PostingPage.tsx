@@ -10,7 +10,7 @@ export default function PostingPage() {
   return (
     <div data-theme="default" className="bg-bg min-h-screen">
       <header className="lg:pl-56 flex justify-start items-start bg-bg border-b border-white/10 px-4 py-3">
-        <img src="./Logo.png" alt="Kontakt logo" className="h-24 w-auto" />
+        <img src="./Logo.png" alt="Kontakt logo" className="max-h-8 lg:max-h-16 w-auto" />
       </header>
 
       <main className="pb-20 lg:pb-0 lg:pl-56">
