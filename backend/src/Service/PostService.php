@@ -34,4 +34,22 @@ class PostService
 
         return $post;
     }
+
+    public function toggleLike(Post $post, User $user): array
+    {
+        if ($post->getLikedBy()->contains($user)) {
+            $post->removeLikedBy($user);
+            $isLiked = false;
+        } else {
+            $post->addLikedBy($user);
+            $isLiked = true;
+        }
+
+        $this->postRepository->save($post, true);
+
+        return [
+            'liked' => $isLiked,
+            'likesCount' => $post->getLikedBy()->count(),
+        ];
+    }
 }

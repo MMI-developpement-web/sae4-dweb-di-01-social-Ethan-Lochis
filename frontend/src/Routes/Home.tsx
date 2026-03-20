@@ -14,6 +14,8 @@ interface PostType {
     id: number;
     username: string;
   };
+  likesCount?: number;
+  isLikedByCurrentUser?: boolean;
 }
 
 export default function Home() {
@@ -134,9 +136,12 @@ export default function Home() {
               posts.map((post) => (
                 <Post
                   key={post.id}
+                  id={post.id}
                   username={post.Author.username}
                   text={post.TextContent}
                   timestamp={new Date(post.CreatedAt).toLocaleDateString()}
+                  likesCount={post.likesCount}
+                  likedByCurrentUser={post.isLikedByCurrentUser}
                 />
               ))}
 

@@ -44,9 +44,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     private ?ApiToken $apiToken = null;
 
+    /**
+     * @var Collection<int, Post>
+     */
+    #[ORM\ManyToMany(targetEntity: Post::class, mappedBy: 'LikedBy')]
+    private Collection $Liked;
+
     public function __construct()
     {
         $this->posts = new ArrayCollection();
+        $this->Liked = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -173,6 +180,33 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         $this->apiToken = $apiToken;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Post>
+     */
+    public function getLiked(): Collection
+    {
+        return $this->Liked;
+    }
+
+    public function addLiked(Post $liked): static
+    {
+        if (!$this->Liked->contains($liked)) {
+            $this->Liked->add($liked);
+            $liked->addLikedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLiked(Post $liked): static
+    {
+        if ($this->Liked->removeElement($liked)) {
+            $liked->removeLikedBy($this);
+        }
 
         return $this;
     }

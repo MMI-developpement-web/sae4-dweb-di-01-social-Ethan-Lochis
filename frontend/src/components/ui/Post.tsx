@@ -1,6 +1,8 @@
 import { cva } from "class-variance-authority";
 import Like from "./Like";
-
+import { apiFetch } from "../../lib/api";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 // --- Variants ---
 const avatarVariants = cva("rounded-full object-cover shrink-0", {
@@ -14,20 +16,43 @@ const avatarVariants = cva("rounded-full object-cover shrink-0", {
 });
 
 interface PostProps {
+  id?: number;
   username: string;
   avatarUrl?: string;
   text: string;
   timestamp?: string;
   isReply?: boolean;
+  likesCount?: number;
+  likedByCurrentUser?: boolean;
 }
 
 export default function Post({
+  id,
   username,
   avatarUrl,
   text,
   timestamp = "il y a 2h",
   isReply = false,
+  likesCount = 0,
+  likedByCurrentUser = false,
 }: PostProps) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const handleLike = async () => {
+    if (!user) {
+      navigate('/Auth', { replace: true });
+      return;
+    }
+
+    if (!id) return;
+    try {
+      await apiFetch(`/posts/${id}/like`, { method: "POST" });
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   return (
     <figure className="flex items-start gap-3 bg-bg-lighter rounded-sm p-4 shadow-md">
       {/* --- Colonne gauche : Avatar --- */}
@@ -58,7 +83,12 @@ export default function Post({
 
         {/* Footer : actions */}
         <div className="flex items-center gap-4">
-          <Like size="sm" defaultLiked={false} />
+          <Like 
+            size="sm" 
+            defaultLiked={likedByCurrentUser} 
+            defaultCount={likesCount} 
+            onClick={handleLike} 
+          />
         </div>
       </div>
     </figure>

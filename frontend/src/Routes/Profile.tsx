@@ -15,6 +15,8 @@ interface PostType {
     id: number;
     username: string;
   };
+  likesCount?: number;
+  isLikedByCurrentUser?: boolean;
 }
 
 export default function Profile() {
@@ -101,10 +103,12 @@ export default function Profile() {
               {posts.map((post) => (
                 <Post
                   key={post.id}
+                  id={post.id}
                   username={post.Author.username}
                   text={post.TextContent}
                   timestamp={new Date(post.CreatedAt).toLocaleDateString()}
-                  // On pourrait utiliser post.Author.profilePicture si dispo
+                  likesCount={post.likesCount}
+                  likedByCurrentUser={post.isLikedByCurrentUser}
                 />
               ))}
             </div>

@@ -17,20 +17,28 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 class PostController extends AbstractController
 {
     #[Route('', name: 'list', methods: ['GET'])]
-    public function list(Request $request, PostRepository $postRepository): JsonResponse
+    public function list(Request $request, PostRepository $postRepository, #[CurrentUser] ?User $user): JsonResponse
     {
         $limit = $request->query->getInt('limit', 7);
         $offset = $request->query->getInt('offset', 0);
 
+        $posts = $postRepository->findLatest($limit, $offset);
+
+        if ($user) {
+            foreach ($posts as $post) {
+                $post->setIsLikedByCurrentUser($post->getLikedBy()->contains($user));
+            }
+        }
+
         return $this->json(
-            $postRepository->findLatest($limit, $offset),
+            $posts,
             200,
             [],
             ['groups' => ['post:read']]
         );
     }
     #[Route('/user/{userId}', name: 'by_user', requirements: ['userId' => '\d+'], methods: ['GET'])]
-    public function listByUser(int $userId, UserRepository $userRepository, PostRepository $postRepository): JsonResponse
+    public function listByUser(int $userId, UserRepository $userRepository, PostRepository $postRepository, #[CurrentUser] ?User $currentUser): JsonResponse
     {
         $user = $userRepository->find($userId);
 
@@ -38,20 +46,32 @@ class PostController extends AbstractController
             return $this->json(['error' => 'User not found.'], JsonResponse::HTTP_NOT_FOUND);
         }
 
+        $posts = $postRepository->findByAuthor($userId);
+
+        if ($currentUser) {
+            foreach ($posts as $post) {
+                $post->setIsLikedByCurrentUser($post->getLikedBy()->contains($currentUser));
+            }
+        }
+
         return $this->json(
-            $postRepository->findByAuthor($userId),
+            $posts,
             200,
             [],
             ['groups' => ['post:read']]
         );
     }
     #[Route('/{id}', name: 'show', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    public function show(int $id, PostRepository $postRepository): JsonResponse
+    public function show(int $id, PostRepository $postRepository, #[CurrentUser] ?User $user): JsonResponse
     {
         $post = $postRepository->find($id);
 
         if ($post === null) {
             return $this->json(['error' => 'Post not found.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        if ($user) {
+            $post->setIsLikedByCurrentUser($post->getLikedBy()->contains($user));
         }
 
         return $this->json($post, 200, [], ['groups' => ['post:read']]);
@@ -71,5 +91,23 @@ class PostController extends AbstractController
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
+    }
+
+    #[Route('/{id}/like', name: 'like', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function toggleLike(int $id, PostRepository $postRepository, PostService $postService, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (null === $user) {
+            return $this->json(['error' => 'Vous devez être connecté pour liker un post.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $post = $postRepository->find($id);
+
+        if ($post === null) {
+            return $this->json(['error' => 'Post not found.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        $result = $postService->toggleLike($post, $user);
+
+        return $this->json($result, JsonResponse::HTTP_OK);
     }
 }

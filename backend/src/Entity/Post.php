@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\PostRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use \Symfony\Component\Serializer\Attribute\Groups;
 
@@ -27,6 +29,38 @@ class Post
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['post:read'])]
     private ?User $Author = null;
+
+    /**
+     * @var Collection<int, User>
+     */
+    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'Liked')]
+    #[ORM\JoinTable(name: 'likes')]
+    private Collection $LikedBy;
+
+    public function __construct()
+    {
+        $this->LikedBy = new ArrayCollection();
+    }
+
+    #[Groups(['post:read'])]
+    public function getLikesCount(): int
+    {
+        return $this->LikedBy->count();
+    }
+
+    private bool $isLikedByCurrentUser = false;
+
+    #[Groups(['post:read'])]
+    public function getIsLikedByCurrentUser(): bool
+    {
+        return $this->isLikedByCurrentUser;
+    }
+
+    public function setIsLikedByCurrentUser(bool $isLiked): static
+    {
+        $this->isLikedByCurrentUser = $isLiked;
+        return $this;
+    }
 
     public function getId(): ?int
     {
@@ -65,6 +99,30 @@ class Post
     public function setAuthor(?User $Author): static
     {
         $this->Author = $Author;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getLikedBy(): Collection
+    {
+        return $this->LikedBy;
+    }
+
+    public function addLikedBy(User $likedBy): static
+    {
+        if (!$this->LikedBy->contains($likedBy)) {
+            $this->LikedBy->add($likedBy);
+        }
+
+        return $this;
+    }
+
+    public function removeLikedBy(User $likedBy): static
+    {
+        $this->LikedBy->removeElement($likedBy);
 
         return $this;
     }
