@@ -34,7 +34,7 @@ export default function ProfileHeader({
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-6 py-8 px-6 bg-bg-lighter text-fg relative">
+    <div className="flex flex-col items-center gap-6 py-8  bg-bg-lighter text-fg relative">
       <div className="absolute top-4 right-4" ref={menuRef}>
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}

@@ -1,7 +1,7 @@
 import { cn } from "../../lib/utils";
 import { IconHome, IconPost } from "./Icons";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 
 type Tab = "home" | "post" | "profile";
@@ -14,14 +14,30 @@ interface NavbarProps {
 }
 
 export default function Navbar({
-  avatarUrl,
-  username = "User",
+  avatarUrl: propAvatarUrl,
+  username: propUsername,
   defaultTab = "home",
   onTabChange,
 }: NavbarProps) {
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+  const { user, isAuthenticated } = useAuth();
+
+  // Prioritize auth context over props
+  const username = propUsername || user?.username || "User";
+  const avatarUrl = propAvatarUrl || user?.profilePicture;
+
+  // Sync active tab with current route
+  useEffect(() => {
+    if (location.pathname === "/") {
+      setActiveTab("home");
+    } else if (location.pathname === "/posting") {
+      setActiveTab("post");
+    } else if (location.pathname === "/profile") {
+      setActiveTab("profile");
+    }
+  }, [location.pathname]);
 
   const routes: Record<Tab, string> = {
     home: "/",

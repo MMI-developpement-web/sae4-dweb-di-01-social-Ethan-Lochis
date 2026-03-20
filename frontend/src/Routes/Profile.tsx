@@ -57,7 +57,7 @@ export default function Profile() {
     <div className="min-h-screen bg-bg flex flex-col">
       <Navbar />
 
-      <main className="flex-1 max-w-150 w-full mx-auto bg-bg-lighter min-h-screen pb-12  shadow-lg">
+      <main className="flex-1 max-w-150 w-full mx-auto bg-bg-lighter min-h-screen p-12 shadow-lg">
         {user ? (
           <ProfileHeader
             username={user.username}
@@ -99,7 +99,7 @@ export default function Profile() {
           )}
 
           {!loading && !error && posts.length > 0 && (
-            <div className="divide-y divide-gray-100">
+            <div className="mt-4 mb-8 flex flex-col gap-4">
               {posts.map((post) => (
                 <Post
                   key={post.id}
@@ -109,6 +109,7 @@ export default function Profile() {
                   timestamp={new Date(post.CreatedAt).toLocaleDateString()}
                   likesCount={post.likesCount}
                   likedByCurrentUser={post.isLikedByCurrentUser}
+                  background="darker"
                 />
               ))}
             </div>
