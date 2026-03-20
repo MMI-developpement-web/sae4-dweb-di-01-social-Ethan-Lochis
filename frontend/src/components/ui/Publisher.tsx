@@ -18,7 +18,7 @@ const avatarVariants = cva("rounded-full object-cover shrink-0", {
     size: {
       sm: "size-5",
       md: "size-8",
-      lg: "size-10",
+      lg: "size-16",
     },
     ring: {
       none: "",

@@ -42,4 +42,11 @@ class PostRepository extends ServiceEntityRepository
         return $this->findBy([], ['id' => 'DESC']);
     }
 
+    /**
+     * @return Post[] Returns an array of Post objects for a specific author ordered by ID descending
+     */
+    public function findByAuthor(int $authorId): array
+    {
+        return $this->findBy(['Author' => $authorId], ['id' => 'DESC']);
+    }
 }

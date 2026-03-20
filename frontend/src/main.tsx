@@ -5,6 +5,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Auth from "./Routes/Auth";
 import Home from "./Routes/Home";
 import PostingPage from "./Routes/PostingPage";
+import Profile from "./Routes/Profile";
 import NotFound from "./Routes/NotFound";
 import "./index.css";
 
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: "/posting",
     element: <PostingPage />,
+  },
+  {
+    path: "/profile",
+    element: <Profile />,
   },
   {
     path: "*",

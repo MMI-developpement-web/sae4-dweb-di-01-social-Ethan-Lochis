@@ -1,0 +1,108 @@
+import { useState, useEffect } from "react";
+import Navbar from "../components/ui/Navbar";
+import ProfileHeader from "../components/ui/ProfileHeader";
+import Post from "../components/ui/Post";
+import { apiFetch } from "../lib/api";
+import { useAuth } from "../contexts/AuthContext";
+import { IconSpinner } from "../components/ui/Icons";
+
+interface PostType {
+  id: number;
+  TextContent: string;
+  CreatedAt: string;
+  Author: {
+    id: number;
+    username: string;
+  };
+}
+
+export default function Profile() {
+  const [posts, setPosts] = useState<PostType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  useEffect(() => {
+  const fetchUserPosts = async () => {
+    if (!user) {
+      setPosts([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);  // ← ajouter ça
+    try {
+      const data = await apiFetch<PostType[]>(`/posts/user/${user.id}`);
+      setPosts(data);
+    } catch (err: any) {
+      setError(err.message || "Erreur lors du chargement des posts");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchUserPosts();
+}, [user]);
+
+  return (
+    <div className="min-h-screen bg-bg flex flex-col">
+      <Navbar />
+
+      <main className="flex-1 max-w-150 w-full mx-auto bg-bg-lighter min-h-screen pb-12  shadow-lg">
+        {user ? (
+          <ProfileHeader
+            username={user.username}
+            avatarUrl={user.profilePicture || undefined}
+            postCount={posts.length}
+            followingCount={0} // Mocké temporairement !
+            followerCount={0} // Mocké temporairement !
+          />
+        ) : (
+          <div className="p-8 text-center text-gray-500">
+            Veuillez vous connecter pour voir votre profil.
+          </div>
+        )}
+
+        <div className="mt-2">
+          <h2 className="px-6 py-4 text-xl font-bold border-b text-fg">
+            Tous vos posts
+          </h2>
+
+          {loading && (
+            <div className="flex justify-center items-center p-8 w-full ">
+              <div className="w-1/6">
+                <IconSpinner />
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="p-4 mx-4 mt-4 text-red-700 bg-red-100 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          {!loading && !error && posts.length === 0 && (
+            <div className="p-8 text-center text-fg">
+              Vous n'avez pas encore publié de post.
+            </div>
+          )}
+
+          {!loading && !error && posts.length > 0 && (
+            <div className="divide-y divide-gray-100">
+              {posts.map((post) => (
+                <Post
+                  key={post.id}
+                  username={post.Author.username}
+                  text={post.TextContent}
+                  timestamp={new Date(post.CreatedAt).toLocaleDateString()}
+                  // On pourrait utiliser post.Author.profilePicture si dispo
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}

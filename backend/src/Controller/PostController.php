@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Post;
 use App\Entity\User;
 use App\Repository\PostRepository;
+use App\Repository\UserRepository;
 use App\Service\PostService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,7 +26,22 @@ class PostController extends AbstractController
             ['groups' => ['post:read']]
         );
     }
+    #[Route('/user/{userId}', name: 'by_user', requirements: ['userId' => '\d+'], methods: ['GET'])]
+    public function listByUser(int $userId, UserRepository $userRepository, PostRepository $postRepository): JsonResponse
+    {
+        $user = $userRepository->find($userId);
 
+        if ($user === null) {
+            return $this->json(['error' => 'User not found.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        return $this->json(
+            $postRepository->findByAuthor($userId),
+            200,
+            [],
+            ['groups' => ['post:read']]
+        );
+    }
     #[Route('/{id}', name: 'show', requirements: ['id' => '\\d+'], methods: ['GET'])]
     public function show(int $id, PostRepository $postRepository): JsonResponse
     {
