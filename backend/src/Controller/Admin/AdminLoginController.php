@@ -15,18 +15,10 @@ class AdminLoginController extends AbstractController
         $error = $authenticationUtils->getLastAuthenticationError();
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        return $this->render('@EasyAdmin/page/login.html.twig', [
+        return $this->render('admin/login.html.twig', [
             'error' => $error,
             'last_username' => $lastUsername,
-            'translation_domain' => 'admin',
-            'page_title' => 'Kontakt Admin Login',
-            'csrf_token_intention' => 'authenticate',
-            'target_path' => $this->generateUrl('admin_dashboard'),
-            'username_label' => 'Nom d\'utilisateur',
-            'password_label' => 'Mot de passe',
-            'sign_in_label' => 'Se connecter',
-            'username_parameter' => '_username',
-            'password_parameter' => '_password',
+            'action' => $this->generateUrl('admin_login'),
         ]);
     }
 
