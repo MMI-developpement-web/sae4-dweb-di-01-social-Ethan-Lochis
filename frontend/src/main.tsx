@@ -3,12 +3,18 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { FollowProvider } from "./contexts/FollowContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
+import { Toaster } from "./components/ui/Toaster";
+import { setupAPIInterceptor } from "./lib/apiInterceptor";
 import Auth from "./Routes/Auth";
 import Home from "./Routes/Home";
 import PostingPage from "./Routes/PostingPage";
 import Profile from "./Routes/Profile";
 import NotFound from "./Routes/NotFound";
 import "./index.css";
+
+// Configurer l'intercepteur API au démarrage
+setupAPIInterceptor();
 
 const router = createBrowserRouter([
   {
@@ -38,10 +44,13 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AuthProvider>
-      <FollowProvider>
-        <RouterProvider router={router} />
-      </FollowProvider>
-    </AuthProvider>
+    <NotificationProvider>
+      <AuthProvider>
+        <FollowProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </FollowProvider>
+      </AuthProvider>
+    </NotificationProvider>
   </StrictMode>,
 );

@@ -16,7 +16,7 @@ class UserChecker implements UserCheckerInterface
         }
 
         if ($user->isBlocked()) {
-            throw new CustomUserMessageAuthenticationException('Votre compte a été suspendu par un administrateur.');
+            throw new CustomUserMessageAuthenticationException('Votre compte a été bloqué.');
         }
     }
 

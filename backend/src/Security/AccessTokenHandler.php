@@ -24,7 +24,7 @@ class AccessTokenHandler implements AccessTokenHandlerInterface
         }
 
         if ($apiToken->getUser()->isBlocked()) {
-            throw new BadCredentialsException('Account is blocked.');
+            throw new BadCredentialsException('Votre compte a été bloqué.');
         }
 
         // On retourne l'identifiant de l'utilisateur (email ou username, défini par getUserIdentifier())

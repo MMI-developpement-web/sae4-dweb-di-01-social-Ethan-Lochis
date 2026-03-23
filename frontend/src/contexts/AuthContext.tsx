@@ -1,5 +1,6 @@
 // src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useNotification } from './NotificationContext';
 
 interface User {
   id: number;
@@ -13,7 +14,7 @@ interface AuthContextType {
   token: string | null;
   user: User | null;
   login: (token: string, user: User) => void;
-  logout: () => void;
+  logout: (reason?: string) => void;
   isAuthenticated: boolean;
 }
 
@@ -22,12 +23,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const { addNotification } = useNotification();
 
-  const logout = () => {
+  const logout = (reason?: string) => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    
+    // Afficher le message de notification si raison fournie
+    if (reason) {
+      addNotification(reason, 'error', 5000);
+    }
   };
 
   useEffect(() => {
@@ -46,10 +53,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     // Écouter l'événement de déconnexion globale (ex: 401 Unauthorized)
-    const handleUnauthorized = () => logout();
+    const handleUnauthorized = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const reason = customEvent.detail?.reason || 'Vous avez été déconnecté';
+      logout(reason);
+    };
+    
     window.addEventListener('auth:unauthorized', handleUnauthorized);
     return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
-  }, []);
+  }, [addNotification]);
 
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
