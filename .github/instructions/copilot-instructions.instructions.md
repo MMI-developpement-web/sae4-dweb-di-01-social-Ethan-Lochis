@@ -348,6 +348,97 @@ class Post
 
 ---
 
+# Sémantique HTML5 & Accessibilité (a11y) & SEO
+
+**Rôle appliqué** : Développeur Front-end Senior expert en accessibilité et SEO produisant du **HTML5 sémantiquement parfait**.
+
+## Principes directeurs
+
+1. **Bannir la "Div Soup"** — N'utiliser `<div>` ou `<span>` que s'il n'existe **aucune** balise sémantique appropriée (ex : wrapper styling ou ciblage JS uniquement).
+2. **Structure globale** — Une page doit contenir : `<header>`, `<main>` (unique), `<footer>`.
+3. **Navigation** — Tout groupe de liens de navigation = `<nav>` avec `aria-label` si multiples navs (ex : pagination, fil d'Ariane, menus).
+4. **Articles & Sections** :
+   - `<article>` = contenu autonome réutilisable (post, carte produit, commentaire).
+   - `<section>` = groupement thématique. **Toute `<section>` doit idéalement contenir un titre** (`h2`-`h6`).
+5. **Hiérarchie des titres** — Ordre logique strict, un seul `<h1>` par page, jamais de sauts (pas de `<h2>` → `<h4>` direct).
+6. **Contenu secondaire** — `<aside>` pour barres latérales, widgets, informations complémentaires non essentielles.
+7. **Interactions critiques** :
+   - `<a>` = **navigation uniquement** (href obligatoire, jamais onClick).
+   - `<button>` = **action sur la page** (ouvrir modal, soumettre formulaire, liker post). Jamais onClick sur `<div>`.
+   - Modals = `<dialog>` HTML5 avec `role="dialog"`, `aria-modal="true"`, `aria-labelledby`.
+8. **Médias & Images** :
+   - Images porteuses de sens = `alt` descriptif obligatoire.
+   - `<figure>` + `<figcaption>` quand l'image nécessite une légende.
+9. **Formulaires** :
+   - Chaque input doit avoir un `<label htmlFor="id">` associé (pas de placeholder seul).
+   - Utiliser `<FormField>` pattern (Label + InputField + ErrorMessage).
+   - Grouper logiquement avec `<fieldset>` + `<legend>` si pertinent.
+
+## Checklist par type de composant
+
+### Pages (`src/Routes/`)
+- [ ] Structure : `<header>` + `<main>`+ éventuellement `<footer>`
+- [ ] Un seul `<h1>` en début de page
+- [ ] Contenu groupé en `<section>` avec titres logiques (`<h2>`, `<h3>`)
+- [ ] Navigation = `<nav aria-label="...">` si pertinent
+- [ ] Pas de `<div>` englobant sans raison sémantique
+
+### Composants UI (`src/components/ui/`)
+- [ ] **Buttons** : Toujours `<button>`, jamais `<div onClick>`
+- [ ] **Links** : `<a href>`, jamais pour les actions
+- [ ] **Inputs** : Associés à un `<label htmlFor>`, avec `id` unique
+- [ ] **Images** : `alt` descriptif, pas d'alt vide (`alt=""` si image purement décorative)
+- [ ] **Icons (SVG)** : Utiliser `aria-hidden="true"` si décoratif, sinon `aria-label`
+
+### Molécules (`src/components/ui/`)
+- [ ] **FormField** : Label + Input + ErrorMessage, tout bien associé
+- [ ] **Comment, Post** : Structure `<article>` si contenu autonome
+- [ ] **Publisher** : Peut rester `<div>` si c'est juste du composage visuel
+
+### Organismes (`src/components/`)
+- [ ] **Forms** : `<form>` sémantique, labels asssociés, fieldsets si groupes
+- [ ] **Feeds** : `<section>` englobante avec titre, articles enfants
+- [ ] **Modals** : `<dialog>` avec attributs d'accessibilité
+
+## Patterns à appliquer
+
+### Modal (au lieu de div)
+```tsx
+<dialog
+  open={isOpen}
+  onCancel={handleClose}
+  aria-modal="true"
+  aria-labelledby="modal-title"
+  role="dialog"
+>
+  <h2 id="modal-title">Titre du Modal</h2>
+  <p>Contenu...</p>
+  <button onClick={handleClose}>Fermer</button>
+</dialog>
+```
+
+### Post (article autonome)
+```tsx
+<article>
+  <header>
+    <h2>Titre du Post</h2>
+    <p>Auteur • Date</p>
+  </header>
+  <p>Contenu du post...</p>
+  <footer>Boutons actions</footer>
+</article>
+```
+
+### Filtres/Navigation (section logique)
+```tsx
+<nav aria-label="Filtres de contenu">
+  <button>Pour vous</button>
+  <button>Suivis</button>
+</nav>
+```
+
+---
+
 # API REST Backend
 
 ## Routes Utilisateurs & Posts

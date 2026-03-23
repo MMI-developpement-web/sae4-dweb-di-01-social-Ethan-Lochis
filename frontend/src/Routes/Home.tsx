@@ -109,11 +109,11 @@ export default function Home() {
 
       <main className="pb-20 lg:pb-0 lg:pl-56">
         <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4 text-fg">
-          <div className="hidden sm:block">
+          <section className="hidden sm:block">
             <Posting onPostCreated={handlePostCreated} />
-          </div>
+          </section>
 
-          <div className="flex flex-col gap-3">
+          <section className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <h1 className="text-26 font-semibold my-2">
                 Votre fil d'actualité
@@ -129,7 +129,7 @@ export default function Home() {
             </div>
 
             {user && (
-              <div className="flex bg-fg/10 rounded-lg p-1 w-full sm:w-1/2 mx-auto sm:mx-0 mb-2">
+              <nav className="flex bg-fg/10 rounded-lg p-1 w-full sm:w-1/2 mx-auto sm:mx-0 mb-2" aria-label="Filtres de contenu">
                 <button
                   onClick={() => setFeed("foryou")}
                   disabled={loading}
@@ -152,7 +152,7 @@ export default function Home() {
                 >
                   Suivis
                 </button>
-              </div>
+              </nav>
             )}
 
             {loading && posts.length === 0 && (
@@ -192,7 +192,7 @@ export default function Home() {
                 Vous avez vu tous les posts.
               </p>
             )}
-          </div>
+          </section>
         </div>
       </main>
 

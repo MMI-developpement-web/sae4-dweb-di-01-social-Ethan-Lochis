@@ -78,7 +78,7 @@ export default function Profile() {
           </div>
         )}
 
-        <div className="mt-2">
+        <section className="mt-2" aria-label="Publications du profil">
           <h2 className="px-6 py-4 text-xl font-bold border-b text-fg">
             Tous vos posts
           </h2>
@@ -104,7 +104,7 @@ export default function Profile() {
           )}
 
           {!loading && !error && posts.length > 0 && (
-            <div className="mt-4 mb-8 flex flex-col gap-4">
+            <section className="mt-4 mb-8 flex flex-col gap-4">
               {posts.map((post) => (
                 <Post
                   key={post.id}
@@ -120,9 +120,9 @@ export default function Profile() {
                   onDelete={handlePostDeleted}
                 />
               ))}
-            </div>
+            </section>
           )}
-        </div>
+        </section>
       </main>
     </div>
   );

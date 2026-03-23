@@ -47,7 +47,10 @@ export default function Posting({ onPostCreated }: PostingProps) {
       className="flex flex-col gap-4 p-4 rounded-[5px] shadow-2xl bg-bg-lighter w-full max-w-2xl mx-auto"
     >
       <Publisher username={user?.username || "Invité"} size="md" />
-      {error && <div className="text-red-500 text-sm">{error}</div>}
+      {error && <div className="text-red-500 text-sm" role="alert">{error}</div>}
+      <label htmlFor="post-text" className="sr-only">
+        Contenu du post
+      </label>
       <textarea
         id="post-text"
         name="post-text"

@@ -227,7 +227,7 @@ export default function Login() {
       <h2 className="text-fg text-3xl">
         {isLogin ? "Connectez-vous" : "Inscrivez-vous"}
       </h2>
-      <div className="bg-bg-lighter flex w-full max-w-sm flex-col gap-6 rounded-lg p-8 shadow-2xl">
+      <section className="bg-bg-lighter flex w-full max-w-sm flex-col gap-6 rounded-lg p-8 shadow-2xl">
         <AuthTabs isLogin={isLogin} onSwitch={handleTabSwitch} />
 
         {apiError && (
@@ -285,7 +285,7 @@ export default function Login() {
             )}
           </Button>
         </form>
-      </div>
+      </section>
     </>
   );
 }

@@ -34,7 +34,7 @@ export default function ProfileHeader({
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-6 py-8  bg-bg-lighter text-fg relative">
+    <header className="flex flex-col items-center gap-6 py-8  bg-bg-lighter text-fg relative">
       <div className="absolute top-4 right-4" ref={menuRef}>
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -45,7 +45,7 @@ export default function ProfileHeader({
         </button>
 
         {isMenuOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-10">
+          <nav className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-10" aria-label="Menu utilisateur">
             <button
               onClick={() => {
                 setIsMenuOpen(false);
@@ -56,13 +56,13 @@ export default function ProfileHeader({
               <IconLogout className="size-5" />
               Se déconnecter
             </button>
-          </div>
+          </nav>
         )}
       </div>
 
       <Publisher username={username} avatarUrl={avatarUrl} size="lg" ring="default" />
 
-      <div className="flex w-full max-w-sm justify-between text-center mt-4">
+      <section className="flex w-full max-w-sm justify-between text-center mt-4" aria-label="Statistiques du profil">
         <div className="flex flex-col items-center flex-1">
           <span className="text-xl font-bold text-fg">{postCount}</span>
           <span className="text-sm font-medium ">Posts</span>
@@ -75,7 +75,7 @@ export default function ProfileHeader({
           <span className="text-xl font-bold text-fg">{followerCount}</span>
           <span className="text-sm font-medium ">Abonnés</span>
         </div>
-      </div>
-    </div>
+      </section>
+    </header>
   );
 }
