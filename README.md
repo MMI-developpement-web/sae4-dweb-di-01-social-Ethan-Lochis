@@ -77,7 +77,7 @@ docker compose exec sae-backend php bin/console doctrine:migrations:migrate
 | **Dashboard Admin (EasyAdmin)** | [http://localhost:8080/admin](http://localhost:8080/admin) |
 | **phpMyAdmin** | [http://localhost:8070](http://localhost:8070) |
 
-### Production (Serveur UNILIM)
+### Production (Serveur privée UNILIM)
 
 | Service | URL |
 |---------|-----|
@@ -163,84 +163,6 @@ Les administrateurs peuvent :
    - Ses posts affichent : *"Ce compte a été bloqué pour non respect des conditions d'utilisation"*
    - Ses likes disparaissent
    - Il ne peut plus se reconnecter
-
-## Commandes Utiles
-
-### Docker
-```bash
-# Démarrer les conteneurs
-docker compose up -d
-
-# Arrêter les conteneurs
-docker compose down
-
-# Voir les logs d'un service
-docker compose logs -f sae-backend
-
-# Exécuter une commande dans un conteneur
-docker compose exec sae-backend php bin/console <command>
-```
-
-### Symfony (Backend)
-```bash
-# Migrations Doctrine
-docker compose exec sae-backend php bin/console doctrine:migrations:migrate
-docker compose exec sae-backend php bin/console make:migration
-
-# Gérer le cache
-docker compose exec sae-backend php bin/console cache:clear
-
-# Créer un utilisateur admin
-docker compose exec sae-backend php bin/console app:create-admin <username> <password>
-```
-
-### Vite (Frontend)
-```bash
-# Build pour la production
-docker compose exec sae-frontend npm run build
-
-# Lancer en mode développement (watch)
-docker compose exec sae-frontend npm run dev
-```
-
-## Base de Données
-
-Sauvegardez régulièrement votre BDD :
-```bash
-# Export SQL
-docker compose exec sae-mysql mysqldump -u root -p<password> <db_name> > backup.sql
-
-# Import SQL
-docker compose exec -T sae-mysql mysql -u root -p<password> <db_name> < backup.sql
-```
-
-Alternativement, placez les fichiers SQL dans `docker/mysql/sql_import_scripts/` (auto-import au démarrage).
-
-## Conventions de Code
-
-### Frontend (React/TypeScript)
-- Utiliser `CVA` (class-variance-authority) pour les variantes de composants
-- Ne jamais ajouter `className` en prop sur les composants UI
-- Nommer les handlers `handleXxx`
-- Séparation : composants UI (sans état), composants métier (avec état)
-
-### Backend (Symfony/PHP)
-- Un contrôleur = une ressource REST
-- Déléguer la logique métier aux Services
-- Requêtes personnalisées dans les Repositories
-- Valider via `#[Assert\...]` sur les Entités
-
-## Contribution
-
-1. Les changements importants doivent mettre à jour `.github/instructions/copilot-instructions.md`
-2. Suivre l'architecture atomique (Frontend) et MVC (Backend)
-3. Tester localement avant de pusher
-4. Committer en français avec messages clairs
-
-## Support & Déploiement
-
-Pour le déploiement en production, consultez votre administrateur système UNILIM.
-Assurez-vous que les variables d'environnement sensibles (JWT_SECRET, DB_PASSWORD, etc.) sont bien configurées sur le serveur.
 
 ---
 
