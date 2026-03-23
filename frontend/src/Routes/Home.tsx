@@ -48,16 +48,16 @@ export default function Home() {
 
   const fetchPosts = useCallback(
     async (reset = false) => {
-      if (loadingMore || (!reset && loading) || (!hasMore && !reset)) return;
+      if (!reset && (loadingMore || loading || !hasMore)) return;
 
       // In order to avoid stale closures with offset, we'll use a functional update or refs.
       // However, with useCallback and correct dependencies, this works.
       const currentOffset = reset ? 0 : offset;
 
-      if (reset && posts.length === 0) {
-        setLoading(true); // On affiche le gros loader que si la liste est vide
+      if (reset) {
+        if (posts.length === 0) setLoading(true);
         setHasMore(true);
-      } else if (!reset) {
+      } else {
         setLoadingMore(true);
       }
 
@@ -65,9 +65,9 @@ export default function Home() {
         const data = await apiFetch<PostType[]>(
           `/posts?limit=${limit}&offset=${currentOffset}&feed=${feed}`,
         );
-        if (data.length < limit) {
-          setHasMore(false);
-        }
+        
+        setHasMore(data.length >= limit);
+        
         setPosts((prev) => (reset ? data : [...prev, ...data]));
         setOffset(currentOffset + limit);
       } catch (err: any) {
@@ -153,7 +153,7 @@ export default function Home() {
                 <Button
                   variant="primary"
                   size="md"
-                  onClick={() => window.location.href = "/Auth"}
+                  onClick={() => window.location.href = "./Auth"}
                 >
                   Se connecter
                 </Button>
