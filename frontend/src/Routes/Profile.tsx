@@ -24,6 +24,8 @@ export default function Profile() {
   const [posts, setPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followerCount, setFollowerCount] = useState(0);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -37,25 +39,37 @@ export default function Profile() {
   };
 
   useEffect(() => {
-  const fetchUserPosts = async () => {
+  const fetchUserData = async () => {
     if (!user) {
       setPosts([]);
       setLoading(false);
       return;
     }
 
-    setLoading(true);  // ← ajouter ça
+    setLoading(true);
     try {
-      const data = await apiFetch<PostType[]>(`/posts/user/${user.id}`);
-      setPosts(data);
+      // Fetch user stats (following/followers)
+      const stats = await apiFetch<{
+        user: any;
+        followedIds: number[];
+        followingCount: number;
+        followerCount: number;
+      }>("/users/me");
+      
+      setFollowingCount(stats.followingCount);
+      setFollowerCount(stats.followerCount);
+
+      // Fetch user posts
+      const postsData = await apiFetch<PostType[]>(`/posts/user/${user.id}`);
+      setPosts(postsData);
     } catch (err: any) {
-      setError(err.message || "Erreur lors du chargement des posts");
+      setError(err.message || "Erreur lors du chargement");
     } finally {
       setLoading(false);
     }
   };
 
-  fetchUserPosts();
+  fetchUserData();
 }, [user]);
 
   return (
@@ -68,8 +82,8 @@ export default function Profile() {
             username={user.username}
             avatarUrl={user.profilePicture || undefined}
             postCount={posts.length}
-            followingCount={0} // Mocké temporairement !
-            followerCount={0} // Mocké temporairement !
+            followingCount={followingCount}
+            followerCount={followerCount}
             onLogout={handleLogout}
           />
         ) : (

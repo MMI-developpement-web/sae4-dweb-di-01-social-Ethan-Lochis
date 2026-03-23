@@ -82,7 +82,7 @@ class UserController extends AbstractController
     }
 
     #[Route('/me', name: 'me', methods: ['GET'])]
-    public function getCurrentUser(#[CurrentUser] ?User $currentUser): JsonResponse
+    public function getCurrentUser(#[CurrentUser] ?User $currentUser, UserRepository $userRepository): JsonResponse
     {
         if ($currentUser === null) {
             return $this->json(['error' => 'Authentication required.'], JsonResponse::HTTP_UNAUTHORIZED);
@@ -93,9 +93,20 @@ class UserController extends AbstractController
             $currentUser->getSubscription()->toArray()
         );
 
+        // Compter les followers (utilisateurs qui suivent l'utilisateur courant)
+        $followers = $userRepository->findBy([], null);
+        $followerCount = 0;
+        foreach ($followers as $follower) {
+            if ($follower->getSubscription()->contains($currentUser)) {
+                $followerCount++;
+            }
+        }
+
         return $this->json([
             'user' => $this->serializeUser($currentUser),
             'followedIds' => $followedIds,
+            'followingCount' => $currentUser->getSubscription()->count(),
+            'followerCount' => $followerCount,
         ]);
     }
 
