@@ -97,13 +97,7 @@ class UserController extends AbstractController
         );
 
         // Compter les followers (utilisateurs qui suivent l'utilisateur courant)
-        $followers = $userRepository->findBy([], null);
-        $followerCount = 0;
-        foreach ($followers as $follower) {
-            if ($follower->getSubscription()->contains($currentUser)) {
-                $followerCount++;
-            }
-        }
+        $followerCount = (int) $userRepository->countFollowers($currentUser);
 
         return $this->json([
             'user' => $this->serializeUser($currentUser),

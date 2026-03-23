@@ -9,18 +9,24 @@ import ConfirmModal from "./ConfirmModal";
 import FollowButton from "./FollowButton";
 
 // --- Variants ---
+const postVariants = cva("flex items-start gap-3 rounded-sm p-4 shadow-md w-full", {
+  variants: {
+    background: {
+      default: "bg-bg-lighter",
+      darker: "bg-bg",
+    }
+  },
+  defaultVariants: { background: "default" },
+});
+
 const avatarVariants = cva("rounded-full object-cover shrink-0", {
   variants: {
     size: {
       reply: "size-6", // 24px pour les réponses
       default: "size-10", // 40px pour les Post principaux
     },
-    background: {
-      default: "bg-bg-lighter",
-      darker: "bg-bg",
-    },
   },
-  defaultVariants: { size: "default", background: "default" },
+  defaultVariants: { size: "default" },
 });
 
 interface PostProps {
@@ -55,11 +61,6 @@ export default function Post({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const backgroundClasses = {
-    default: "bg-bg-lighter",
-    darker: "bg-bg",
-  };
-
   const handleLike = async () => {
     if (!user) {
       navigate("/Auth", { replace: true });
@@ -89,7 +90,7 @@ export default function Post({
   };
 
   return (
-    <figure className={cn("flex items-start gap-3 rounded-sm p-4 shadow-md w-full", backgroundClasses[background])}>
+    <figure className={postVariants({ background })}>
 
       {/* --- Colonne gauche : Avatar --- */}
       <img
