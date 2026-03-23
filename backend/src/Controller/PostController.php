@@ -21,12 +21,21 @@ class PostController extends AbstractController
     {
         $limit = $request->query->getInt('limit', 7);
         $offset = $request->query->getInt('offset', 0);
+        $feed = $request->query->get('feed', 'foryou');
 
-        $posts = $postRepository->findLatest($limit, $offset);
+        if ($feed === 'following' && $user) {
+            $posts = $postRepository->findFollowing($user, $limit, $offset);
+        } else {
+            $posts = $postRepository->findLatest($limit, $offset);
+        }
 
         if ($user) {
             foreach ($posts as $post) {
                 $post->setIsLikedByCurrentUser($post->getLikedBy()->contains($user));
+                $author = $post->getAuthor();
+                if ($author) {
+                    $author->setIsFollowedByCurrentUser($user->getSubscription()->contains($author));
+                }
             }
         }
 
@@ -51,6 +60,10 @@ class PostController extends AbstractController
         if ($currentUser) {
             foreach ($posts as $post) {
                 $post->setIsLikedByCurrentUser($post->getLikedBy()->contains($currentUser));
+                $author = $post->getAuthor();
+                if ($author) {
+                    $author->setIsFollowedByCurrentUser($currentUser->getSubscription()->contains($author));
+                }
             }
         }
 
@@ -72,6 +85,10 @@ class PostController extends AbstractController
 
         if ($user) {
             $post->setIsLikedByCurrentUser($post->getLikedBy()->contains($user));
+            $author = $post->getAuthor();
+            if ($author) {
+                $author->setIsFollowedByCurrentUser($user->getSubscription()->contains($author));
+            }
         }
 
         return $this->json($post, 200, [], ['groups' => ['post:read']]);

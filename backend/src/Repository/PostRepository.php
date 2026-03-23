@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Post;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -40,6 +41,33 @@ class PostRepository extends ServiceEntityRepository
     public function findLatest(?int $limit = null, ?int $offset = null): array
     {
         return $this->findBy([], ['id' => 'DESC'], $limit, $offset);
+    }
+
+    /**
+     * Retourne uniquement les posts des personnes suivies.
+     * @return Post[]
+     */
+    public function findFollowing(User $currentUser, ?int $limit = null, ?int $offset = null): array
+    {
+        if ($currentUser->getSubscription()->isEmpty()) {
+            return [];
+        }
+
+        $followedIds = array_map(fn($u) => $u->getId(), $currentUser->getSubscription()->toArray());
+
+        $qb = $this->createQueryBuilder('p')
+            ->where('p.Author IN (:followedIds)')
+            ->setParameter('followedIds', $followedIds)
+            ->orderBy('p.id', 'DESC');
+
+        if ($limit !== null) {
+            $qb->setMaxResults($limit);
+        }
+        if ($offset !== null) {
+            $qb->setFirstResult($offset);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**

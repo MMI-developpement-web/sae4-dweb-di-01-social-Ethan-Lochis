@@ -34,4 +34,32 @@ class UserService
 
         return $user;
     }
+
+    public function followUser(User $follower, User $target): bool
+    {
+        if ($follower->getId() === $target->getId()) {
+            throw new InvalidArgumentException('Cannot follow yourself.');
+        }
+
+        if ($follower->getSubscription()->contains($target)) {
+            throw new InvalidArgumentException('Already following this user.');
+        }
+
+        $follower->addSubscription($target);
+        $this->userRepository->save($follower, true);
+
+        return true;
+    }
+
+    public function unfollowUser(User $follower, User $target): bool
+    {
+        if (!$follower->getSubscription()->contains($target)) {
+            throw new InvalidArgumentException('Not following this user.');
+        }
+
+        $follower->removeSubscription($target);
+        $this->userRepository->save($follower, true);
+
+        return true;
+    }
 }

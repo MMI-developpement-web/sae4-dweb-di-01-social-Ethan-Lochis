@@ -6,6 +6,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { cn } from "../../lib/utils";
 import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
+import FollowButton from "./FollowButton";
 
 // --- Variants ---
 const avatarVariants = cva("rounded-full object-cover shrink-0", {
@@ -24,6 +25,8 @@ const avatarVariants = cva("rounded-full object-cover shrink-0", {
 
 interface PostProps {
   id?: number;
+  authorId?: number;
+  authorInitialFollowed?: boolean;
   username: string;
   avatarUrl?: string;
   text: string;
@@ -37,6 +40,8 @@ interface PostProps {
 
 export default function Post({
   id,
+  authorId,
+  authorInitialFollowed,
   username,
   avatarUrl,
   text,
@@ -102,9 +107,14 @@ export default function Post({
       <div className="flex flex-col gap-1 w-full">
         {/* Header : pseudo + timestamp */}
         <div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-fg text-16 font-semibold">{username}</span>
-            <span className="text-14 text-gray-400">{timestamp}</span>
+          <div className="flex items-baseline justify-between gap-2">
+            <div className="flex items-baseline gap-2">
+              <span className="text-fg text-16 font-semibold">{username}</span>
+              <span className="text-14 text-gray-400">{timestamp}</span>
+            </div>
+            {authorId !== undefined && (
+              <FollowButton userId={authorId} initialFollowed={authorInitialFollowed} />
+            )}
           </div>
           <span className="text-inactive text-14 ">@{username}</span>
         </div>

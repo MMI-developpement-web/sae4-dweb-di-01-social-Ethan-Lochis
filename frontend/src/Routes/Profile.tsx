@@ -14,6 +14,7 @@ interface PostType {
   Author: {
     id: number;
     username: string;
+    isFollowedByCurrentUser?: boolean;
   };
   likesCount?: number;
   isLikedByCurrentUser?: boolean;
@@ -108,6 +109,8 @@ export default function Profile() {
                 <Post
                   key={post.id}
                   id={post.id}
+                  authorId={post.Author?.id}
+                  authorInitialFollowed={post.Author?.isFollowedByCurrentUser}
                   username={post.Author.username}
                   text={post.TextContent}
                   timestamp={new Date(post.CreatedAt).toLocaleDateString()}

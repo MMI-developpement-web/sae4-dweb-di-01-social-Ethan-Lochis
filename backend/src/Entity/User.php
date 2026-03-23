@@ -32,6 +32,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 500, nullable: true)]
     private ?string $profilePicture = null;
 
+    #[Groups(['post:read'])]
+    private bool $isFollowedByCurrentUser = false;
+
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 
@@ -50,10 +53,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: Post::class, mappedBy: 'LikedBy')]
     private Collection $Liked;
 
+    /**
+     * @var Collection<int, self>
+     */
+    #[ORM\ManyToMany(targetEntity: self::class, inversedBy: 'Subscribed')]
+    #[ORM\JoinTable(name: 'Subscriptions')]
+    #[ORM\JoinColumn(name: 'follower_id', referencedColumnName: 'id')]
+    #[ORM\InverseJoinColumn(name: 'following_id', referencedColumnName: 'id')]
+    private Collection $Subscription;
+
+    /**
+     * @var Collection<int, self>
+     */
+    #[ORM\ManyToMany(targetEntity: self::class, mappedBy: 'Subscription')]
+    private Collection $Subscibed;
+    #[ORM\JoinColumn(name: 'Following', referencedColumnName: 'id')]
+    #[ORM\InverseJoinColumn(name: 'Followed', referencedColumnName: 'id')]
+
     public function __construct()
     {
         $this->posts = new ArrayCollection();
         $this->Liked = new ArrayCollection();
+        $this->Subscription = new ArrayCollection();
+        $this->Subscibed = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -86,7 +108,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * Méthode obligatoire pour UserInterface
      */
-     public function getUserIdentifier(): string
+    public function getUserIdentifier(): string
     {
         return (string) $this->username;
     }
@@ -208,6 +230,68 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $liked->removeLikedBy($this);
         }
 
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, self>
+     */
+    public function getSubscription(): Collection
+    {
+        return $this->Subscription;
+    }
+
+    public function addSubscription(self $subscription): static
+    {
+        if (!$this->Subscription->contains($subscription)) {
+            $this->Subscription->add($subscription);
+        }
+
+        return $this;
+    }
+
+    public function removeSubscription(self $subscription): static
+    {
+        $this->Subscription->removeElement($subscription);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, self>
+     */
+    public function getSubscibed(): Collection
+    {
+        return $this->Subscibed;
+    }
+
+    public function addSubscibed(self $subscibed): static
+    {
+        if (!$this->Subscibed->contains($subscibed)) {
+            $this->Subscibed->add($subscibed);
+            $subscibed->addSubscription($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSubscibed(self $subscibed): static
+    {
+        if ($this->Subscibed->removeElement($subscibed)) {
+            $subscibed->removeSubscription($this);
+        }
+
+        return $this;
+    }
+
+    public function getIsFollowedByCurrentUser(): bool
+    {
+        return $this->isFollowedByCurrentUser;
+    }
+
+    public function setIsFollowedByCurrentUser(bool $isFollowedByCurrentUser): static
+    {
+        $this->isFollowedByCurrentUser = $isFollowedByCurrentUser;
         return $this;
     }
 }
