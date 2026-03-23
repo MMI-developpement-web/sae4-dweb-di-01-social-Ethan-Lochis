@@ -6,6 +6,7 @@ import { apiFetch } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
 import { IconSpinner } from "../components/ui/Icons";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface PostType {
   id: number;
@@ -119,19 +120,30 @@ export default function Profile() {
 
           {!loading && !error && posts.length > 0 && (
             <section className="mt-4 mb-8 flex flex-col gap-4">
-              {posts.map((post) => (
-                <Post
-                  key={post.id}
-                  id={post.id}
-                  authorId={post.Author?.id}
-                  username={post.Author.username}
-                  text={post.TextContent}
-                  timestamp={new Date(post.CreatedAt).toLocaleDateString()}
-                  likesCount={post.likesCount}
-                  likedByCurrentUser={post.isLikedByCurrentUser}
-                  background="darker"
-                  onDelete={handlePostDeleted}
-                />
+              {posts.map((post, index) => (
+                <motion.div
+                  key={post.id} // 👈 La key passe de <Post> à <motion.div>
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
+                    duration: 0.5, 
+                    // Si tu n'as pas de pagination sur cette page, tu peux juste faire index * 0.1
+                    // Si tu as une limite (ex: 7), utilise (index % 7) * 0.1
+                    delay: index * 0.1 
+                  }}
+                >
+                  <Post
+                    id={post.id}
+                    authorId={post.Author?.id}
+                    username={post.Author.username}
+                    text={post.TextContent}
+                    timestamp={new Date(post.CreatedAt).toLocaleDateString()}
+                    likesCount={post.likesCount}
+                    likedByCurrentUser={post.isLikedByCurrentUser}
+                    background="darker"
+                    onDelete={handlePostDeleted}
+                  />
+                </motion.div>
               ))}
             </section>
           )}

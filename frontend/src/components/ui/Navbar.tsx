@@ -75,7 +75,7 @@ export default function Navbar({
 
       <button onClick={() => handleTabClick("post")} className={itemClass("post")}>
         <IconPost className="size-6 shrink-0" />
-        <span className="hidden lg:inline text-sm font-medium">Publications</span>
+        <span className="hidden lg:inline text-sm font-medium">Publier</span>
       </button>
 
       <button
@@ -105,7 +105,7 @@ export default function Navbar({
           </div>
         )}
         <span className="hidden lg:inline text-sm font-medium text-fg truncate">
-          {isAuthenticated ? username : "Se connecter"}
+          {isAuthenticated ? "Votre compte" : "Se connecter"}
         </span>
       </button>
     </nav>

@@ -31,7 +31,7 @@ export default function ConfirmModal({
       aria-modal="true"
       aria-labelledby="confirm-modal-title"
       role="dialog"
-      className="fixed inset-0 z-100 rounded-lg bg-bg-lighter p-6 shadow-xl ring-1 ring-white/10 backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+      className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-100 rounded-lg bg-bg-lighter p-6 shadow-xl ring-1 ring-white/10 backdrop:bg-black/50 backdrop:backdrop-blur-sm"
     >
       <h2 id="confirm-modal-title" className="text-xl font-semibold text-fg">{title}</h2>
       <p className="mt-2 text-fg/70 leading-relaxed">{description}</p>

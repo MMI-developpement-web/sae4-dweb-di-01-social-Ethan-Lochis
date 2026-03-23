@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Publisher from "./Publisher";
 import { IconSettings, IconLogout } from "./Icons";
+import { motion } from "framer-motion";
 
 interface ProfileHeaderProps {
   username: string;
@@ -63,18 +64,46 @@ export default function ProfileHeader({
       <Publisher username={username} avatarUrl={avatarUrl} size="lg" ring="default" />
 
       <section className="flex w-full max-w-sm justify-between text-center mt-4" aria-label="Statistiques du profil">
+        
+        {/* --- STAT: POSTS --- */}
         <div className="flex flex-col items-center flex-1">
-          <span className="text-xl font-bold text-fg">{postCount}</span>
-          <span className="text-sm font-medium ">Posts</span>
+          <motion.span 
+            key={postCount} 
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className="text-xl font-bold text-fg"
+          >
+            {postCount}
+          </motion.span>
+          <span className="text-sm font-medium">Posts</span>
         </div>
+
+        {/* --- STAT: ABONNEMENTS --- */}
         <div className="flex flex-col items-center flex-1 border-x border-gray-200">
-          <span className="text-xl font-bold text-fg">{followingCount}</span>
-          <span className="text-sm font-medium ">Abonnements</span>
+          <motion.span 
+            key={followingCount} 
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className="text-xl font-bold text-fg"
+          >
+            {followingCount}
+          </motion.span>
+          <span className="text-sm font-medium">Abonnements</span>
         </div>
+
+        {/* --- STAT: ABONNÉS --- */}
         <div className="flex flex-col items-center flex-1">
-          <span className="text-xl font-bold text-fg">{followerCount}</span>
-          <span className="text-sm font-medium ">Abonnés</span>
+          <motion.span 
+            key={followerCount} 
+            initial={{ opacity: 0, y: -10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className="text-xl font-bold text-fg"
+          >
+            {followerCount}
+          </motion.span>
+          <span className="text-sm font-medium">Abonnés</span>
         </div>
+
       </section>
     </header>
   );
