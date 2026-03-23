@@ -40,7 +40,7 @@ export default function Home() {
     <div data-theme="default" className="bg-bg min-h-screen">
       <header className="lg:pl-56 flex justify-start items-start bg-bg border-b border-white/10 py-3 ">
         <div>
-          <img src="/Logo.png" alt="Kontakt logo" className="h-24 w-auto" />
+          <img src="./Logo.png" alt="Kontakt logo" className="h-24 w-auto" />
         </div>
       </header>
 
