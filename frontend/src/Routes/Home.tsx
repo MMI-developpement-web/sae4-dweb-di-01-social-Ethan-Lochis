@@ -5,6 +5,7 @@ import Post from "../components/ui/Post";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
 import { RefreshIcon } from "../components/ui/Icons";
+import { motion } from 'framer-motion'; 
 
 interface PostType {
   id: number;
@@ -167,19 +168,31 @@ export default function Home() {
             )}
 
             {!error &&
-              posts.map((post) => (
-                <Post
+              posts.map((post, index) => (
+                <motion.div
                   key={post.id}
-                  id={post.id}
-                  authorId={post.Author?.id}
-                  authorInitialFollowed={post.Author?.isFollowedByCurrentUser}
-                  username={post.Author.username}
-                  text={post.TextContent}
-                  timestamp={new Date(post.CreatedAt).toLocaleDateString()}
-                  likesCount={post.likesCount}
-                  likedByCurrentUser={post.isLikedByCurrentUser}
-                  onDelete={handlePostDeleted}
-                />
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
+                    duration: 0.5, 
+                    // On limite le délai aux 7 premiers posts (la limite de ton fetch)
+                    // pour éviter que les anciens posts mettent 10 secondes à apparaître
+                    // quand tu scrolles vers le bas (infinite scroll)
+                    delay: (index % limit) * 0.1 
+                  }}
+                >
+                  <Post
+                    id={post.id}
+                    authorId={post.Author?.id}
+                    authorInitialFollowed={post.Author?.isFollowedByCurrentUser}
+                    username={post.Author.username}
+                    text={post.TextContent}
+                    timestamp={new Date(post.CreatedAt).toLocaleDateString()}
+                    likesCount={post.likesCount}
+                    likedByCurrentUser={post.isLikedByCurrentUser}
+                    onDelete={handlePostDeleted}
+                  />
+                </motion.div>
               ))}
 
             {loadingMore && (

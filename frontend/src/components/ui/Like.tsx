@@ -1,6 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { IconHeart } from "./Icons";
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
 const likeVariants = cva(
   "inline-flex items-center justify-center rounded-full transition-colors cursor-pointer",
@@ -62,13 +63,29 @@ export default function Like({
 
   return (
     <div className="inline-flex items-center gap-1">
-      <button
+      <motion.button
         onClick={handleClick}
         className={likeVariants({ size, background, filling: liked ? filling : "none" })}
+        // 1. Le bouton s'enfonce quand on clique
+        whileTap={{ scale: 0.85 }} 
+        // 2. Le bouton entier fait un petit bond quand il est liké
+        animate={{ scale: liked ? [1, 1.25, 1] : 1 }} 
+        transition={{ duration: 0.3 }}
       >
         <IconHeart className="transition-colors" />
-      </button>
-      {count > 0 && <span className="text-sm text-gray-500">{count}</span>}
+      </motion.button>
+      
+      {/* animation compteur */}
+      {count > 0 && (
+        <motion.span 
+          key={count}
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-sm text-gray-500"
+        >
+          {count}
+        </motion.span>
+      )}
     </div>
   );
 }

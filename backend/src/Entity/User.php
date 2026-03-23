@@ -68,8 +68,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: self::class, mappedBy: 'Subscription')]
     private Collection $Subscibed;
 
-    #[ORM\Column(nullable: true)]
-    private ?bool $isBlocked = null;
+    #[ORM\Column(nullable: false)]
+    private bool $isBlocked = false;
     #[ORM\JoinColumn(name: 'Following', referencedColumnName: 'id')]
     #[ORM\InverseJoinColumn(name: 'Followed', referencedColumnName: 'id')]
 
