@@ -45,6 +45,9 @@ class Post
     #[Groups(['post:read'])]
     public function getLikesCount(): int
     {
+        if ($this->Author && $this->Author->isBlocked()) {
+            return 0;
+        }
         return $this->LikedBy->count();
     }
 
@@ -53,6 +56,9 @@ class Post
     #[Groups(['post:read'])]
     public function getIsLikedByCurrentUser(): bool
     {
+        if ($this->Author && $this->Author->isBlocked()) {
+            return false;
+        }
         return $this->isLikedByCurrentUser;
     }
 
@@ -69,6 +75,9 @@ class Post
 
     public function getTextContent(): ?string
     {
+        if ($this->Author && $this->Author->isBlocked()) {
+            return "Ce compte a été bloqué pour non respect des conditions d’utilisation";
+        }
         return $this->TextContent;
     }
 
@@ -108,6 +117,9 @@ class Post
      */
     public function getLikedBy(): Collection
     {
+        if ($this->Author && $this->Author->isBlocked()) {
+            return new ArrayCollection();
+        }
         return $this->LikedBy;
     }
 

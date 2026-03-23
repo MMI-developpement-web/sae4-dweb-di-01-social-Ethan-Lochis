@@ -24,6 +24,7 @@ security:
             pattern: ^/admin
             lazy: true
             provider: app_user_provider
+            user_checker: App\Security\UserChecker
             form_login:
                 login_path: admin_login
                 check_path: admin_login
@@ -37,6 +38,7 @@ security:
         main:
             lazy: true
             provider: app_user_provider
+            user_checker: App\Security\UserChecker
 
             # Configuration pour React (JSON au lieu de formulaire HTML)
             json_login:

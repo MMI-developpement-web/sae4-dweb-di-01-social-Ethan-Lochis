@@ -18,6 +18,10 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      window.dispatchEvent(new Event('auth:unauthorized'));
+    }
+
     let errorMsg = 'Erreur réseau';
     try {
       const errorData = await response.json();

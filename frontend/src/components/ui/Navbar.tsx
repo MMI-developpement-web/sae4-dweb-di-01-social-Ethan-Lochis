@@ -1,5 +1,5 @@
 import { cn } from "../../lib/utils";
-import { IconHome, IconPost } from "./Icons";
+import { IconHome, IconPost, IconUser } from "./Icons";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
@@ -82,18 +82,31 @@ export default function Navbar({
         onClick={() => handleTabClick("profile")}
         className={cn(
           "flex items-center gap-3 cursor-pointer transition-all rounded-lg p-2",
-          "lg:w-full lg:px-4 lg:py-3 hover:text-fg",
+          "lg:w-full lg:px-4 lg:py-3",
         )}
       >
-        <img
-          src={avatarUrl ?? `https://ui-avatars.com/api/?name=${username}&background=random`}
-          alt={username}
-          className={cn(
-            "size-9 rounded-full object-cover ring-2 shrink-0",
-            activeTab === "profile" ? "ring-secondary" : "ring-primary",
-          )}
-        />
-        <span className="hidden lg:inline text-sm font-medium text-fg truncate">{username}</span>
+        {isAuthenticated ? (
+          <img
+            src={avatarUrl ?? `https://ui-avatars.com/api/?name=${username}&background=random`}
+            alt={username}
+            className={cn(
+              "size-9 rounded-full object-cover ring-2 shrink-0",
+              activeTab === "profile" ? "ring-secondary" : "ring-primary",
+            )}
+          />
+        ) : (
+          <div
+            className={cn(
+              "flex items-center justify-center size-9 rounded-full ring-2 shrink-0 bg-white",
+              activeTab === "profile" ? "ring-secondary" : "ring-primary",
+            )}
+          >
+            <IconUser className="size-5" />
+          </div>
+        )}
+        <span className="hidden lg:inline text-sm font-medium text-fg truncate">
+          {isAuthenticated ? username : "Se connecter"}
+        </span>
       </button>
     </nav>
   );

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import Button from "./Button";
 import { IconSpinner } from "./Icons";
+import { apiFetch } from "../../lib/api";
 
 interface FollowButtonProps {
   userId: number;
@@ -24,18 +25,8 @@ export default function FollowButton({ userId, initialFollowed = false }: Follow
 
     try {
       const method = isFollowed ? "DELETE" : "POST";
-      const res = await fetch(`http://localhost:8080/api/users/${userId}/follow`, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (res.ok) {
-        setIsFollowed(!isFollowed);
-      } else {
-        console.error("Erreur lors de l'action follow/unfollow");
-      }
+      await apiFetch(`/api/users/${userId}/follow`, { method });
+      setIsFollowed(!isFollowed);
     } catch (error) {
       console.error("Erreur réseau :", error);
     } finally {

@@ -23,6 +23,10 @@ class AccessTokenHandler implements AccessTokenHandlerInterface
             throw new BadCredentialsException('Invalid or expired token.');
         }
 
+        if ($apiToken->getUser()->isBlocked()) {
+            throw new BadCredentialsException('Account is blocked.');
+        }
+
         // On retourne l'identifiant de l'utilisateur (email ou username, défini par getUserIdentifier())
         // Symfony cherchera ensuite l'utisateur via app_user_provider
         return new UserBadge($apiToken->getUser()->getUserIdentifier());

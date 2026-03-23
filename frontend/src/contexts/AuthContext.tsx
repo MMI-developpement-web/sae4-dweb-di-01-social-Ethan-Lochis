@@ -23,6 +23,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
 
+  const logout = () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  };
+
   useEffect(() => {
     // Initialiser l'état depuis le localStorage
     const storedToken = localStorage.getItem('token');
@@ -33,10 +40,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         setUser(JSON.parse(storedUser));
       } catch (e) {
-        console.error('Erreur de parsing de l\'utilisateur depuis le localStorage', e);
+        console.error('Erreur', e);
         logout();
       }
     }
+
+    // Écouter l'événement de déconnexion globale (ex: 401 Unauthorized)
+    const handleUnauthorized = () => logout();
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
 
   const login = (newToken: string, newUser: User) => {
@@ -44,13 +56,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(newUser);
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
   };
 
   const isAuthenticated = !!token;

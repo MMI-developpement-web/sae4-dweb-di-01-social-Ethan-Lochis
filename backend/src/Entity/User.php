@@ -67,6 +67,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\ManyToMany(targetEntity: self::class, mappedBy: 'Subscription')]
     private Collection $Subscibed;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $isBlocked = null;
     #[ORM\JoinColumn(name: 'Following', referencedColumnName: 'id')]
     #[ORM\InverseJoinColumn(name: 'Followed', referencedColumnName: 'id')]
 
@@ -292,6 +295,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsFollowedByCurrentUser(bool $isFollowedByCurrentUser): static
     {
         $this->isFollowedByCurrentUser = $isFollowedByCurrentUser;
+        return $this;
+    }
+
+    public function isBlocked(): ?bool
+    {
+        return $this->isBlocked;
+    }
+
+    public function setIsBlocked(?bool $isBlocked): static
+    {
+        $this->isBlocked = $isBlocked;
+
         return $this;
     }
 }
