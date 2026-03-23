@@ -22,10 +22,10 @@ class AuthController extends AbstractController
             ], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        // 2 & 3. Génère, sauvegarde, et récupère le token aléatoire via Service
+        //Génère, sauvegarde, et récupère le token aléatoire via Service
         $token = $tokenManager->generateAndSaveToken($user);
 
-        // 4. Renvoyer le token en JSON
+        //Renvoyer le token en JSON
         return $this->json([
             'message' => 'Connexion réussie',
             'token'   => $token,
