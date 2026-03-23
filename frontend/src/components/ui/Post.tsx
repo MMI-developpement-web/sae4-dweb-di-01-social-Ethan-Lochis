@@ -26,7 +26,6 @@ const avatarVariants = cva("rounded-full object-cover shrink-0", {
 interface PostProps {
   id?: number;
   authorId?: number;
-  authorInitialFollowed?: boolean;
   username: string;
   avatarUrl?: string;
   text: string;
@@ -41,7 +40,6 @@ interface PostProps {
 export default function Post({
   id,
   authorId,
-  authorInitialFollowed,
   username,
   avatarUrl,
   text,
@@ -113,7 +111,7 @@ export default function Post({
               <span className="text-14 text-gray-400">{timestamp}</span>
             </div>
             {authorId !== undefined && (
-              <FollowButton userId={authorId} initialFollowed={authorInitialFollowed} />
+              <FollowButton userId={authorId} />
             )}
           </div>
           <span className="text-inactive text-14 ">@{username}</span>

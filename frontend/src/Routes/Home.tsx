@@ -184,7 +184,6 @@ export default function Home() {
                   <Post
                     id={post.id}
                     authorId={post.Author?.id}
-                    authorInitialFollowed={post.Author?.isFollowedByCurrentUser}
                     username={post.Author.username}
                     text={post.TextContent}
                     timestamp={new Date(post.CreatedAt).toLocaleDateString()}

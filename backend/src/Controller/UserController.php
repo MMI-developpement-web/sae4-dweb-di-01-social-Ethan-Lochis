@@ -81,6 +81,24 @@ class UserController extends AbstractController
         }
     }
 
+    #[Route('/me', name: 'me', methods: ['GET'])]
+    public function getCurrentUser(#[CurrentUser] ?User $currentUser): JsonResponse
+    {
+        if ($currentUser === null) {
+            return $this->json(['error' => 'Authentication required.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $followedIds = array_map(
+            fn($u) => $u->getId(),
+            $currentUser->getSubscription()->toArray()
+        );
+
+        return $this->json([
+            'user' => $this->serializeUser($currentUser),
+            'followedIds' => $followedIds,
+        ]);
+    }
+
     private function serializeUser(User $user): array
     {
         return [

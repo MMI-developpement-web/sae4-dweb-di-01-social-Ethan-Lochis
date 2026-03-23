@@ -51,14 +51,12 @@ interface PublisherProps extends VariantProps<typeof publisherVariants>, Variant
   username: string;
   avatarUrl?: string;
   userId?: number;
-  initialFollowed?: boolean;
 }
 
 export default function Publisher({
   username,
   avatarUrl,
   userId,
-  initialFollowed,
   size,
   ring,
 }: PublisherProps) {
@@ -71,7 +69,7 @@ export default function Publisher({
       />
       <span className={usernameVariants({ size })}>{username}</span>
       {userId !== undefined && (
-        < FollowButton userId={userId} initialFollowed={initialFollowed} />
+        <FollowButton userId={userId} />
       )}
     </div>
   );

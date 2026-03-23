@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useFollow } from "../../contexts/FollowContext";
 import Button from "./Button";
 import { IconSpinner } from "./Icons";
 import { apiFetch } from "../../lib/api";
 
 interface FollowButtonProps {
   userId: number;
-  initialFollowed?: boolean;
 }
 
-export default function FollowButton({ userId, initialFollowed = false }: FollowButtonProps) {
+export default function FollowButton({ userId }: FollowButtonProps) {
   const { user, token } = useAuth();
-  const [isFollowed, setIsFollowed] = useState(initialFollowed);
+  const { followedUsers, toggleFollow } = useFollow();
   const [isLoading, setIsLoading] = useState(false);
+
+  const isFollowed = followedUsers.has(userId);
 
   // Ne pas afficher si non connecté ou si c'est le profil courant
   if (!user || user.id === userId) {
@@ -25,8 +27,8 @@ export default function FollowButton({ userId, initialFollowed = false }: Follow
 
     try {
       const method = isFollowed ? "DELETE" : "POST";
-      await apiFetch(`/api/users/${userId}/follow`, { method });
-      setIsFollowed(!isFollowed);
+      await apiFetch(`/users/${userId}/follow`, { method });
+      toggleFollow(userId, !isFollowed);
     } catch (error) {
       console.error("Erreur réseau :", error);
     } finally {

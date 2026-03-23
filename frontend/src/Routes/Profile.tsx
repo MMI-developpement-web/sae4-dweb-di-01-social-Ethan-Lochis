@@ -110,7 +110,6 @@ export default function Profile() {
                   key={post.id}
                   id={post.id}
                   authorId={post.Author?.id}
-                  authorInitialFollowed={post.Author?.isFollowedByCurrentUser}
                   username={post.Author.username}
                   text={post.TextContent}
                   timestamp={new Date(post.CreatedAt).toLocaleDateString()}
