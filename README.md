@@ -20,51 +20,6 @@ Un réseau social moderne combinant une API REST robuste (Symfony) et une interf
 ✅ **Modération d'administrateur** — Bloquer des comptes via le dashboard EasyAdmin
 ✅ **Déconnexion automatique** — Les comptes bloqués sont immédiatement révoqués
 
-## Installation Locale
-
-### Prérequis
-- Docker & Docker Compose
-- Git
-
-### 1. Cloner et configurer
-
-```bash
-git clone <repository>
-cd SAE401
-```
-
-### 2. Installer les dépendances
-
-```bash
-# Frontend (Node.js + npm)
-docker compose run --rm sae-frontend npm install
-
-# Backend (PHP + Composer)
-docker compose run --rm sae-backend composer install
-```
-
-### 3. Configurer les variables d'environnement
-
-- **Frontend** : Créer `frontend/.env` avec vos variables (ex: `VITE_API_URL`)
-- **Backend** : Créer `backend/.env` avec les credentials MySQL
-
-### 4. Démarrer les conteneurs
-
-```bash
-docker compose up -d
-```
-
-Vérifiez que tous les conteneurs sont actifs :
-```bash
-docker compose ps
-```
-
-### 5. Initialiser la base de données
-
-```bash
-# Exécuter les migrations Doctrine
-docker compose exec sae-backend php bin/console doctrine:migrations:migrate
-```
 
 ## Accéder à l'Application
 
