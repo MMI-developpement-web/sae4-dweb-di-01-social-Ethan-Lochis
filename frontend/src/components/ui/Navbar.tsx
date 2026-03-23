@@ -46,6 +46,11 @@ export default function Navbar({
   };
 
   function handleTabClick(tab: Tab) {
+    // Rediriger vers /Auth si l'utilisateur clique sur "Publier" sans être connecté
+    if (tab === "post" && !isAuthenticated) {
+      navigate("/Auth");
+      return;
+    }
     setActiveTab(tab);
     onTabChange?.(tab);
     navigate(routes[tab]);

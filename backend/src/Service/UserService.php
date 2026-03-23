@@ -21,6 +21,18 @@ class UserService
             throw new InvalidArgumentException('Missing username, email, or password.');
         }
 
+        // Vérification d'unicité du username
+        $existingUser = $this->userRepository->findOneBy(['username' => $data['username']]);
+        if ($existingUser !== null) {
+            throw new InvalidArgumentException('Ce nom d\'utilisateur est déjà utilisé.');
+        }
+
+        // Vérification d'unicité de l'email
+        $existingEmail = $this->userRepository->findOneBy(['email' => $data['email']]);
+        if ($existingEmail !== null) {
+            throw new InvalidArgumentException('Cette adresse e-mail est déjà utilisée.');
+        }
+
         $user = new User();
         $user->setUsername($data['username']);
         $user->setEmail($data['email']);

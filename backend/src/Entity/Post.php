@@ -76,7 +76,7 @@ class Post
     public function getTextContent(): ?string
     {
         if ($this->Author && $this->Author->isBlocked()) {
-            return "Ce compte a été bloqué pour non respect des conditions d’utilisation";
+            return "⚠️ Ce compte a été bloqué pour non respect des conditions d’utilisation ⚠️";
         }
         return $this->TextContent;
     }

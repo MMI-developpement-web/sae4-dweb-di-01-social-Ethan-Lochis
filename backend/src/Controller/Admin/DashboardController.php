@@ -28,7 +28,8 @@ class DashboardController extends AbstractDashboardController
     public function configureDashboard(): Dashboard
     {
         return Dashboard::new()
-            ->setTitle('Kontakt Admin');
+            ->setTitle('Kontakt Admin')
+            ->setFaviconPath('assets/favicon_Kontakt.png');
     }
 
     public function configureMenuItems(): iterable

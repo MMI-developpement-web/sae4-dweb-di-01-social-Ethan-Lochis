@@ -36,6 +36,9 @@ class UserController extends AbstractController
             return $this->json($this->serializeUser($user), JsonResponse::HTTP_CREATED);
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            // Capturer toute autre erreur (contraintes DB, etc.)
+            return $this->json(['error' => 'Une erreur est survenue lors de la création du compte.'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 

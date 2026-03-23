@@ -21,6 +21,7 @@ class UserCrudController extends AbstractCrudController
         return [
             TextField::new('username', 'Nom d\'utilisateur'),
             EmailField::new('email', 'Adresse e-mail'),
+            BooleanField::new('admin', 'Administrateur'),
             BooleanField::new('isBlocked', 'Compte bloqué'),
         ];
     }

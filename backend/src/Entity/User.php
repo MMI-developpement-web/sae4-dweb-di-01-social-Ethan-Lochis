@@ -309,4 +309,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    /**
+     * Vérifie si l'utilisateur a le rôle ROLE_ADMIN
+     */
+    public function isAdmin(): bool
+    {
+        return in_array('ROLE_ADMIN', $this->roles, true);
+    }
+
+    /**
+     * Ajoute ou supprime le rôle ROLE_ADMIN
+     */
+    public function setAdmin(bool $isAdmin): static
+    {
+        if ($isAdmin && !$this->isAdmin()) {
+            // Ajouter le rôle
+            $this->roles[] = 'ROLE_ADMIN';
+        } elseif (!$isAdmin && $this->isAdmin()) {
+            // Supprimer le rôle
+            $this->roles = array_filter($this->roles, fn($role) => $role !== 'ROLE_ADMIN');
+        }
+        return $this;
+    }
 }
