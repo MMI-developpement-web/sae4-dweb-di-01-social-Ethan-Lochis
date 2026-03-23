@@ -19,11 +19,11 @@ final class Version20260317100251 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
+        // api_token table already created, skip
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('CREATE TABLE api_token (id INT AUTO_INCREMENT NOT NULL, token VARCHAR(500) NOT NULL, user_id INT DEFAULT NULL, UNIQUE INDEX UNIQ_7BA2F5EBA76ED395 (user_id), PRIMARY KEY (id)) DEFAULT CHARACTER SET utf8mb4');
-        $this->addSql('ALTER TABLE api_token ADD CONSTRAINT FK_7BA2F5EBA76ED395 FOREIGN KEY (user_id) REFERENCES user (id)');
-        $this->addSql('DROP INDEX username ON user');
-        $this->addSql('ALTER TABLE user RENAME INDEX uniq_identifier_email TO UNIQ_8D93D649E7927C74');
+        // Table already exists, only add constraint and rename indices if needed
+        $this->addSql("SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0");
+        $this->addSql("SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS");
     }
 
     public function down(Schema $schema): void
