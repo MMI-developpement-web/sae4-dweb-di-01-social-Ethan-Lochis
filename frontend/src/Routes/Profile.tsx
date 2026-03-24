@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/ui/Navbar";
 import ProfileHeader from "../components/ui/ProfileHeader";
 import Post from "../components/ui/Post";
+import ProfileEditModal from "../components/ProfileEditModal";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
 import { IconSpinner } from "../components/ui/Icons";
@@ -28,6 +29,7 @@ export default function Profile() {
   const [error, setError] = useState<string | null>(null);
   const [followingCount, setFollowingCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -83,10 +85,13 @@ export default function Profile() {
           <ProfileHeader
             username={user.username}
             avatarUrl={user.profilePicture || undefined}
+            bio={user.bio}
+            location={user.location}
             postCount={posts.length}
             followingCount={followingCount}
             followerCount={followerCount}
             onLogout={handleLogout}
+            onEditProfile={() => setIsEditModalOpen(true)}
           />
         ) : (
           <div className="p-8 text-center text-gray-500">
@@ -151,6 +156,10 @@ export default function Profile() {
           )}
         </section>
       </main>
+      <ProfileEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+      />
     </div>
   );
 }

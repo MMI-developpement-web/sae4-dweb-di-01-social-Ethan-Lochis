@@ -5,14 +5,19 @@ namespace App\Service;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use InvalidArgumentException;
 
 class UserService
 {
+    private string $projectDir;
+
     public function __construct(
         private UserRepository $userRepository,
-        private UserPasswordHasherInterface $passwordHasher
+        private UserPasswordHasherInterface $passwordHasher,
+        ParameterBagInterface $parameterBag
     ) {
+        $this->projectDir = $parameterBag->get('kernel.project_dir');
     }
 
     public function createUser(array $data): User
@@ -73,5 +78,29 @@ class UserService
         $this->userRepository->save($follower, true);
 
         return true;
+    }
+
+    public function handleMediaUpload($uploadedFile): string
+    {
+        try {
+            $fileName = bin2hex(random_bytes(8));
+            $extension = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_EXTENSION);
+            $newFileName = $fileName . '.' . strtolower($extension);
+
+            // Créer le répertoire s'il n'existe pas
+            $uploadDir = $this->projectDir . '/public/uploads/profiles';
+            
+            if (!is_dir($uploadDir)) {
+                if (!@mkdir($uploadDir, 0755, true)) {
+                    throw new InvalidArgumentException('Failed to create upload directory.');
+                }
+            }
+
+            $uploadedFile->move($uploadDir, $newFileName);
+
+            return 'uploads/profiles/' . $newFileName;
+        } catch (\Exception $e) {
+            throw new InvalidArgumentException('Error uploading profile picture: ' . $e->getMessage());
+        }
     }
 }

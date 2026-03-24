@@ -107,6 +107,44 @@ class UserController extends AbstractController
         ]);
     }
 
+    #[Route('/me', name: 'update_me', methods: ['POST'])]
+    public function updateCurrentUser(Request $request, #[CurrentUser] ?User $currentUser, \Doctrine\ORM\EntityManagerInterface $em, UserService $userService): JsonResponse
+    {
+        if ($currentUser === null) {
+            return $this->json(['error' => 'Authentication required.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        // Si c'est une requête POST normale ou via méthode override dynamique
+        $method = $request->getMethod();
+        if ($method !== 'POST' && $method !== 'PATCH') {
+             return $this->json(['error' => 'Méthode non autorisée.'], JsonResponse::HTTP_METHOD_NOT_ALLOWED);
+        }
+
+        // Handle multipart/form-data
+        $bio = $request->request->get('bio');
+        $location = $request->request->get('location');
+        $uploadedFile = $request->files->get('profilePicture');
+
+        if ($bio !== null) {
+            $currentUser->setBio($bio);
+        }
+        if ($location !== null) {
+            $currentUser->setLocation($location);
+        }
+        if ($uploadedFile !== null) {
+            try {
+                $profilePicturePath = $userService->handleMediaUpload($uploadedFile);
+                $currentUser->setProfilePicture($profilePicturePath);
+            } catch (\InvalidArgumentException $e) {
+                return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+            }
+        }
+
+        $em->flush();
+
+        return $this->json($this->serializeUser($currentUser));
+    }
+
     private function serializeUser(User $user): array
     {
         return [
@@ -114,6 +152,8 @@ class UserController extends AbstractController
             'username' => $user->getUsername(),
             'email' => $user->getEmail(),
             'profilePicture' => $user->getProfilePicture(),
+            'bio' => $user->getBio(),
+            'location' => $user->getLocation(),
             'roles' => $user->getRoles(),
         ];
     }

@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
+import { getMediaUrl } from "../../lib/utils";
 import FollowButton from "./FollowButton";
 
 const publisherVariants = cva("inline-flex items-center gap-3", {
@@ -60,10 +61,11 @@ export default function Publisher({
   size,
   ring,
 }: PublisherProps) {
+  const imageUrl = avatarUrl ? getMediaUrl(avatarUrl) : null;
   return (
     <div className={publisherVariants({ size })}>
       <img
-        src={avatarUrl ?? `https://ui-avatars.com/api/?name=${username}&background=random`}
+        src={imageUrl ?? `https://ui-avatars.com/api/?name=${username}&background=random`}
         alt={`${username}'s avatar`}
         className={avatarVariants({ size, ring })}
       />

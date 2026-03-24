@@ -6,19 +6,25 @@ import { motion } from "framer-motion";
 interface ProfileHeaderProps {
   username: string;
   avatarUrl?: string;
+  bio?: string | null;
+  location?: string | null;
   postCount: number;
   followingCount: number;
   followerCount: number;
   onLogout?: () => void;
+  onEditProfile?: () => void;
 }
 
 export default function ProfileHeader({
   username,
   avatarUrl,
+  bio,
+  location,
   postCount,
   followingCount,
   followerCount,
   onLogout,
+  onEditProfile,
 }: ProfileHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -46,7 +52,16 @@ export default function ProfileHeader({
         </button>
 
         {isMenuOpen && (
-          <nav className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-10" aria-label="Menu utilisateur">
+          <nav className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10 flex flex-col" aria-label="Menu utilisateur">
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                onEditProfile?.();
+              }}
+              className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left cursor-pointer border-b border-gray-100"
+            >
+              Modifier le profil
+            </button>
             <button
               onClick={() => {
                 setIsMenuOpen(false);
@@ -62,6 +77,13 @@ export default function ProfileHeader({
       </div>
 
       <Publisher username={username} avatarUrl={avatarUrl} size="lg" ring="default" />
+      
+      {(bio || location) && (
+        <div className="flex flex-col items-center mt-2 text-center max-w-lg">
+          {bio && <p className="text-sm text-fg mb-1">{bio}</p>}
+          {location && <p className="text-xs text-gray-500 italic">{location}</p>}
+        </div>
+      )}
 
       <section className="flex w-full max-w-sm justify-between text-center mt-4" aria-label="Statistiques du profil">
         

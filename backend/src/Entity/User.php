@@ -30,7 +30,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 500, nullable: true)]
+    #[Groups(['post:read'])]
     private ?string $profilePicture = null;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    #[Groups(['post:read'])]
+    private ?string $bio = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Groups(['post:read'])]
+    private ?string $location = null;
 
     #[Groups(['post:read'])]
     private bool $isFollowedByCurrentUser = false;
@@ -138,6 +147,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setProfilePicture(?string $profilePicture): static
     {
         $this->profilePicture = $profilePicture;
+        return $this;
+    }
+
+    public function getBio(): ?string
+    {
+        return $this->bio;
+    }
+
+    public function setBio(?string $bio): static
+    {
+        $this->bio = $bio;
+        return $this;
+    }
+
+    public function getLocation(): ?string
+    {
+        return $this->location;
+    }
+
+    public function setLocation(?string $location): static
+    {
+        $this->location = $location;
         return $this;
     }
 

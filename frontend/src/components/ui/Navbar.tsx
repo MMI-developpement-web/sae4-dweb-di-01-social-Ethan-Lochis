@@ -1,4 +1,4 @@
-import { cn } from "../../lib/utils";
+import { cn, getMediaUrl } from "../../lib/utils";
 import { IconHome, IconPost, IconUser } from "./Icons";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -26,7 +26,8 @@ export default function Navbar({
 
   // Prioritize auth context over props
   const username = propUsername || user?.username || "User";
-  const avatarUrl = propAvatarUrl || user?.profilePicture;
+  const rawAvatarUrl = propAvatarUrl || user?.profilePicture;
+  const avatarUrl = rawAvatarUrl ? getMediaUrl(rawAvatarUrl) : null;
 
   // Sync active tab with current route
   useEffect(() => {

@@ -8,12 +8,15 @@ interface User {
   email: string;
   roles: string[];
   profilePicture: string | null;
+  bio?: string | null;
+  location?: string | null;
 }
 
 interface AuthContextType {
   token: string | null;
   user: User | null;
   login: (token: string, user: User) => void;
+  updateUser: (user: User) => void;
   logout: (reason?: string) => void;
   isAuthenticated: boolean;
 }
@@ -70,10 +73,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('user', JSON.stringify(newUser));
   };
 
+  const updateUser = (newUser: User) => {
+    setUser(newUser);
+    localStorage.setItem('user', JSON.stringify(newUser));
+  };
+
   const isAuthenticated = !!token;
 
   return (
-    <AuthContext.Provider value={{ token, user, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ token, user, login, updateUser, logout, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );

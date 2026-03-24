@@ -16,5 +16,7 @@ export function getMediaUrl(relativePath: string | null | undefined): string | n
 
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080/api";
   const baseUrl = apiUrl.replace(/\/api\/?$/, ""); // Enlever "/api" du suffixe
-  return baseUrl + relativePath;
+  // Ajouter "/" entre baseUrl et relativePath
+  const path = relativePath.startsWith("/") ? relativePath : "/" + relativePath;
+  return baseUrl + path;
 }

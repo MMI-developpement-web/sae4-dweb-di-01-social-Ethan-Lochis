@@ -179,7 +179,7 @@ export default function Post({
               />
             ) : (
               <img
-                src={getMediaUrl(mediaUrl) ?? ""}
+                src={getMediaUrl(mediaUrl) || ""}
                 alt="Post media"
                 className="max-h-96 w-auto object-contain rounded-lg"
               />
