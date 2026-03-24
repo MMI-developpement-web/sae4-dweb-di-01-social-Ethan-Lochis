@@ -3,7 +3,7 @@ import Like from "./Like";
 import { apiFetch } from "../../lib/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { cn } from "../../lib/utils";
+import { cn, getMediaUrl } from "../../lib/utils";
 import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 import FollowButton from "./FollowButton";
@@ -35,6 +35,7 @@ interface PostProps {
   username: string;
   avatarUrl?: string;
   text: string;
+  mediaUrl?: string;
   timestamp?: string;
   isReply?: boolean;
   likesCount?: number;
@@ -49,6 +50,7 @@ export default function Post({
   username,
   avatarUrl,
   text,
+  mediaUrl,
   timestamp = "il y a 2h",
   isReply = false,
   likesCount = 0,
@@ -120,6 +122,26 @@ export default function Post({
 
         {/* Corps du message */}
         <p className="text-fg text-16 leading-relaxed">{text}</p>
+
+        {/* Media si présent */}
+        {mediaUrl && (
+          <div className="mt-2 rounded-lg overflow-hidden max-w-full">
+            {mediaUrl.match(/\.(mp4|webm|ogg|mov)$/i) ? (
+              <video
+                src={getMediaUrl(mediaUrl) || undefined}
+                controls
+                className="w-full max-h-96 object-cover"
+                alt="Post media"
+              />
+            ) : (
+              <img
+                src={getMediaUrl(mediaUrl) || ""}
+                alt="Post media"
+                className="w-full max-h-96 object-cover rounded-lg"
+              />
+            )}
+          </div>
+        )}
 
         {/* Footer : actions */}
         <div className="flex items-center gap-4 w-full">

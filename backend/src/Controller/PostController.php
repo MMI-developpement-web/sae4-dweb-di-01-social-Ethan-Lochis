@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Dto\CreatePostPayload;
 use App\Entity\Post;
 use App\Entity\User;
 use App\Repository\PostRepository;
@@ -100,13 +101,29 @@ class PostController extends AbstractController
             return $this->json(['error' => 'Vous devez être connecté pour créer un post.'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        $data = json_decode($request->getContent(), true) ?? [];
-
         try {
-            $post = $postService->createPost($data, $user);
+            // Créer le DTO à partir de la requête multipart/form-data
+            $payload = new CreatePostPayload();
+            $payload->setTextContent($request->request->get('textContent', ''));
+            $payload->setMedia($request->files->get('media'));
+
+            // Validation du textContent
+            if (empty($payload->getTextContent())) {
+                return $this->json(['error' => 'Le contenu du post ne peut pas être vide.'], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            if (strlen($payload->getTextContent()) > 510) {
+                return $this->json(['error' => 'Le contenu ne doit pas dépasser 510 caractères.'], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            $post = $postService->createPost($payload, $user);
             return $this->json($post, JsonResponse::HTTP_CREATED, [], ['groups' => ['post:read']]);
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            // Log l'erreur complète
+            error_log('PostController create error: ' . $e->getMessage() . ' - ' . $e->getFile() . ':' . $e->getLine());
+            return $this->json(['error' => 'Erreur serveur lors de la création du post.'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 

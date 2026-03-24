@@ -53,6 +53,10 @@ class Post
 
     private bool $isLikedByCurrentUser = false;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['post:read', 'post:write'])]
+    private ?string $media_url = null;
+
     #[Groups(['post:read'])]
     public function getIsLikedByCurrentUser(): bool
     {
@@ -135,6 +139,19 @@ class Post
     public function removeLikedBy(User $likedBy): static
     {
         $this->LikedBy->removeElement($likedBy);
+
+        return $this;
+    }
+
+    #[Groups(['post:read'])]
+    public function getMediaUrl(): ?string
+    {
+        return $this->media_url;
+    }
+
+    public function setMediaUrl(?string $media_url): static
+    {
+        $this->media_url = $media_url;
 
         return $this;
     }

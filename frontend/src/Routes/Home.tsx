@@ -11,6 +11,7 @@ import Button from "../components/ui/Button";
 interface PostType {
   id: number;
   TextContent: string;
+  mediaUrl?: string;
   CreatedAt: string;
   Author: {
     id: number;
@@ -249,6 +250,7 @@ export default function Home() {
                     authorId={post.Author?.id}
                     username={post.Author.username}
                     text={post.TextContent}
+                    mediaUrl={post.mediaUrl}
                     timestamp={new Date(post.CreatedAt).toLocaleDateString()}
                     likesCount={post.likesCount}
                     likedByCurrentUser={post.isLikedByCurrentUser}
