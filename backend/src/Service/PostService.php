@@ -36,6 +36,24 @@ class PostService
         return $post;
     }
 
+    public function updatePost(Post $post, CreatePostPayload $payload, bool $removeMedia): Post
+    {
+        $post->setTextContent($payload->getTextContent());
+
+        if ($removeMedia) {
+            $post->setMediaUrl(null);
+        }
+
+        if ($payload->getMedia() !== null) {
+            $mediaUrl = $this->handleMediaUpload($payload->getMedia());
+            $post->setMediaUrl($mediaUrl);
+        }
+
+        $this->postRepository->save($post, true);
+
+        return $post;
+    }
+
     private function handleMediaUpload($uploadedFile): string
     {
         try {

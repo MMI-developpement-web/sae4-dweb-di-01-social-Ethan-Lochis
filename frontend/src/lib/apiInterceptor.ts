@@ -9,7 +9,7 @@ export function setupAPIInterceptor() {
 
   window.fetch = async function (...args: any[]) {
     try {
-      const response = await originalFetch.apply(window, args);
+      const response = await originalFetch.apply(window, args as any);
 
       // Si erreur 401 (Unauthorized)
       if (response.status === 401) {

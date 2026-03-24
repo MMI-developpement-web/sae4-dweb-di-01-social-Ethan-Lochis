@@ -127,6 +127,57 @@ class PostController extends AbstractController
         }
     }
 
+    #[Route('/{id}', name: 'update', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function update(int $id, Request $request, PostRepository $postRepository, PostService $postService, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (null === $user) {
+            return $this->json(['error' => 'Vous devez être connecté pour modifier un post.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $post = $postRepository->find($id);
+
+        if ($post === null) {
+            return $this->json(['error' => 'Post not found.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        if ($post->getAuthor() !== $user) {
+            return $this->json(['error' => 'Vous n\'êtes pas autorisé à modifier ce post.'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        try {
+            // Créer le DTO à partir de la requête multipart/form-data
+            $payload = new CreatePostPayload();
+            $payload->setTextContent($request->request->get('textContent', ''));
+            $payload->setMedia($request->files->get('media'));
+
+            // Validation du textContent
+            if (empty($payload->getTextContent())) {
+                return $this->json(['error' => 'Le contenu du post ne peut pas être vide.'], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            if (strlen($payload->getTextContent()) > 510) {
+                return $this->json(['error' => 'Le contenu ne doit pas dépasser 510 caractères.'], JsonResponse::HTTP_BAD_REQUEST);
+            }
+
+            $removeMedia = $request->request->getBoolean('removeMedia', false);
+
+            $post = $postService->updatePost($post, $payload, $removeMedia);
+
+            $post->setIsLikedByCurrentUser($post->getLikedBy()->contains($user));
+            $author = $post->getAuthor();
+            if ($author) {
+                $author->setIsFollowedByCurrentUser($user->getSubscription()->contains($author));
+            }
+
+            return $this->json($post, JsonResponse::HTTP_OK, [], ['groups' => ['post:read']]);
+        } catch (\InvalidArgumentException $e) {
+            return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            error_log('PostController update error: ' . $e->getMessage() . ' - ' . $e->getFile() . ':' . $e->getLine());
+            return $this->json(['error' => 'Erreur serveur lors de la modification du post.'], JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
     #[Route('/{id}/like', name: 'like', requirements: ['id' => '\d+'], methods: ['POST'])]
     public function toggleLike(int $id, PostRepository $postRepository, PostService $postService, #[CurrentUser] ?User $user): JsonResponse
     {

@@ -1,20 +1,41 @@
 import { useState, useRef } from "react";
 import Publisher from "./ui/Publisher";
 import Button from "./ui/Button";
-import { apiFetch } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
 import { IconImage, IconClose } from "./ui/Icons";
-import { cn } from "../lib/utils";
+import { cn, getMediaUrl } from "../lib/utils";
 
 interface PostingProps {
   onPostCreated?: () => void;
+  isEditing?: boolean;
+  editPostId?: number;
+  initialContent?: string;
+  initialMediaUrl?: string;
+  onPostEdited?: (newData: any) => void;
+  onCancelEdit?: () => void;
 }
 
-export default function Posting({ onPostCreated }: PostingProps) {
-  const [content, setContent] = useState("");
+export default function Posting({ 
+  onPostCreated,
+  isEditing = false,
+  editPostId,
+  initialContent = "",
+  initialMediaUrl,
+  onPostEdited,
+  onCancelEdit
+}: PostingProps) {
+  const [content, setContent] = useState(initialContent);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [previewType, setPreviewType] = useState<"image" | "video" | null>(null);
+  
+  const initialPreview = initialMediaUrl ? getMediaUrl(initialMediaUrl) : null;
+  const initialPreviewType = initialMediaUrl 
+    ? (initialMediaUrl.match(/\.(mp4|webm)$/i) ? "video" : "image") 
+    : null;
+    
+  const [preview, setPreview] = useState<string | null>(initialPreview);
+  const [previewType, setPreviewType] = useState<"image" | "video" | null>(initialPreviewType as "image" | "video" | null);
+  const [mediaRemoved, setMediaRemoved] = useState(false);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,6 +65,7 @@ export default function Posting({ onPostCreated }: PostingProps) {
     }
 
     setSelectedFile(file);
+    setMediaRemoved(false);
     setError(null);
 
     // Générer la preview
@@ -59,6 +81,7 @@ export default function Posting({ onPostCreated }: PostingProps) {
     setSelectedFile(null);
     setPreview(null);
     setPreviewType(null);
+    setMediaRemoved(true);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -79,12 +102,21 @@ export default function Posting({ onPostCreated }: PostingProps) {
       // Créer FormData pour multipart/form-data
       const formData = new FormData();
       formData.append("textContent", content);
+      
       if (selectedFile) {
         formData.append("media", selectedFile);
       }
+      
+      if (isEditing && mediaRemoved && !selectedFile) {
+        formData.append("removeMedia", "true");
+      }
+
+      const url = isEditing 
+        ? `${import.meta.env.VITE_API_URL}/posts/${editPostId}`
+        : `${import.meta.env.VITE_API_URL}/posts`;
 
       // Utiliser fetch directement pour FormData (apiFetch ne supporte pas bien FormData)
-       const response = await fetch(`${import.meta.env.VITE_API_URL}/posts`, {
+       const response = await fetch(url, {
         method: "POST",
         body: formData,
         headers: {
@@ -94,18 +126,26 @@ export default function Posting({ onPostCreated }: PostingProps) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Erreur lors de la publication.");
+        throw new Error(errorData.error || (isEditing ? "Erreur lors de la modification." : "Erreur lors de la publication."));
       }
 
-      setContent("");
-      setSelectedFile(null);
-      setPreview(null);
-      setPreviewType(null);
-      if (onPostCreated) {
-        onPostCreated();
+      const data = await response.json();
+
+      if (!isEditing) {
+        setContent("");
+        setSelectedFile(null);
+        setPreview(null);
+        setPreviewType(null);
+        if (onPostCreated) {
+          onPostCreated();
+        }
+      } else {
+        if (onPostEdited) {
+          onPostEdited(data);
+        }
       }
     } catch (err: any) {
-      setError(err.message || "Erreur lors de la publication.");
+      setError(err.message || (isEditing ? "Erreur lors de la modification." : "Erreur lors de la publication."));
     } finally {
       setIsSubmitting(false);
     }
@@ -116,7 +156,7 @@ export default function Posting({ onPostCreated }: PostingProps) {
       onSubmit={handleSubmit}
       className="flex flex-col gap-4 p-4 rounded-[5px] shadow-2xl bg-bg-lighter w-full max-w-2xl mx-auto"
     >
-      <Publisher username={user?.username || "Invité"} size="md" />
+      {!isEditing && <Publisher username={user?.username || "Invité"} size="md" />}
       {error && (
         <div className="text-red-500 text-sm" role="alert">
           {error}
@@ -132,7 +172,7 @@ export default function Posting({ onPostCreated }: PostingProps) {
         value={content}
         onChange={handleContentChange}
         placeholder="What's on your mind?"
-        rows={8}
+        rows={isEditing ? 4 : 8}
         className="shrink w-full resize-none rounded-lg border border-fg p-3 text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-gray-400"
       />
 
@@ -180,24 +220,36 @@ export default function Posting({ onPostCreated }: PostingProps) {
           onClick={triggerFileInput}
           disabled={isSubmitting}
           className={cn(
-            "p-2 rounded-full transition-colors hover:bg-primary/10",
+            "rounded-full transition-colors hover:bg-primary/10",
             isSubmitting && "opacity-50 cursor-not-allowed"
           )}
           aria-label="Ajouter une image ou vidéo"
         >
-          <IconImage className="size-5 text-primary" />
+          <IconImage className="size-6 text-primary" />
         </button>
 
-        <Button
-          type="submit"
-          variant="primary"
-          size="md"
-          disabled={content.trim().length === 0 || isSubmitting}
-        >
-          {isSubmitting ? "Publication..." : "Publier"}
-        </Button>
+        <div className="flex gap-2">
+          {isEditing && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              disabled={isSubmitting}
+              onClick={onCancelEdit}
+            >
+              Annuler
+            </Button>
+          )}
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            disabled={content.trim().length === 0 || isSubmitting}
+          >
+            {isSubmitting ? (isEditing ? "Modification..." : "Publication...") : (isEditing ? "Enregistrer" : "Publier")}
+          </Button>
+        </div>
       </div>
     </form>
   );
 }
-
