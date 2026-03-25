@@ -9,5 +9,6 @@ export interface PostType {
     isFollowedByCurrentUser?: boolean;
   };
   likesCount?: number;
+  commentsCount?: number;
   isLikedByCurrentUser?: boolean;
 }

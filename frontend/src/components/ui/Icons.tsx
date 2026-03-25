@@ -24,8 +24,6 @@ export function IconHeart({ className = "size-6" }: IconProps) {
   );
 }
 
-
-
 export function IconUser({ className = "size-6" }: IconProps) {
   return (
     <svg
@@ -278,8 +276,6 @@ export function IconLogout({ className = "size-6" }: IconProps) {
   );
 }
 
-
-
 export function RefreshIcon({
   className = "size-6",
   isSpinning = false,
@@ -357,8 +353,6 @@ export function IconInfo({ className = "size-6" }: IconProps) {
   );
 }
 
-
-
 export function IconClose({ className = "size-6" }: IconProps) {
   return (
     <svg
@@ -383,8 +377,30 @@ export function IconImage({ className = "size-6" }: IconProps) {
     >
       <rect x="0" fill="none" width="24" height="24" />
       <g>
-        <path fill="currentColor" d="M23 4v2h-3v3h-2V6h-3V4h3V1h2v3h3zm-8.5 7c.828 0 1.5-.672 1.5-1.5S15.328 8 14.5 8 13 8.672 13 9.5s.672 1.5 1.5 1.5zm3.5 3.234l-.513-.57c-.794-.885-2.18-.885-2.976 0l-.655.73L9 9l-3 3.333V6h7V4H6c-1.105 0-2 .895-2 2v12c0 1.105.895 2 2 2h12c1.105 0 2-.895 2-2v-7h-2v3.234z" />
+        <path
+          fill="currentColor"
+          d="M23 4v2h-3v3h-2V6h-3V4h3V1h2v3h3zm-8.5 7c.828 0 1.5-.672 1.5-1.5S15.328 8 14.5 8 13 8.672 13 9.5s.672 1.5 1.5 1.5zm3.5 3.234l-.513-.57c-.794-.885-2.18-.885-2.976 0l-.655.73L9 9l-3 3.333V6h7V4H6c-1.105 0-2 .895-2 2v12c0 1.105.895 2 2 2h12c1.105 0 2-.895 2-2v-7h-2v3.234z"
+        />
       </g>
+    </svg>
+  );
+}
+
+export function IconComment({ className = "size-6" }: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth="1.5"
+      stroke="currentColor"
+      className={className}
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z"
+      />
     </svg>
   );
 }

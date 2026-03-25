@@ -6,9 +6,11 @@ import { IconImage, IconClose } from "./ui/Icons";
 import { cn, getMediaUrl } from "../lib/utils";
 
 interface PostingProps {
-  onPostCreated?: () => void;
+  onPostCreated?: (data?: any) => void;
   isEditing?: boolean;
   editPostId?: number;
+  postId?: number; // Used for comments
+  variant?: "post" | "comment";
   initialContent?: string;
   initialMediaUrl?: string;
   onPostEdited?: (newData: any) => void;
@@ -19,6 +21,8 @@ export default function Posting({
   onPostCreated,
   isEditing = false,
   editPostId,
+  postId,
+  variant = "post",
   initialContent = "",
   initialMediaUrl,
   onPostEdited,
@@ -99,30 +103,43 @@ export default function Posting({
     setError(null);
 
     try {
-      // Créer FormData pour multipart/form-data
-      const formData = new FormData();
-      formData.append("textContent", content);
-      
-      if (selectedFile) {
-        formData.append("media", selectedFile);
-      }
-      
-      if (isEditing && mediaRemoved && !selectedFile) {
-        formData.append("removeMedia", "true");
-      }
+      let response;
+      if (variant === "comment" && postId) {
+        // Envoi simple en JSON pour les commentaires
+        response = await fetch(`${import.meta.env.VITE_API_URL}/posts/${postId}/comments`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ TextContent: content }),
+        });
+      } else {
+        // Créer FormData pour multipart/form-data (posts avec potentiels médias)
+        const formData = new FormData();
+        formData.append("textContent", content);
+        
+        if (selectedFile) {
+          formData.append("media", selectedFile);
+        }
+        
+        if (isEditing && mediaRemoved && !selectedFile) {
+          formData.append("removeMedia", "true");
+        }
 
-      const url = isEditing 
-        ? `${import.meta.env.VITE_API_URL}/posts/${editPostId}`
-        : `${import.meta.env.VITE_API_URL}/posts`;
+        const url = isEditing 
+          ? `${import.meta.env.VITE_API_URL}/posts/${editPostId}`
+          : `${import.meta.env.VITE_API_URL}/posts`;
 
-      // Utiliser fetch directement pour FormData (apiFetch ne supporte pas bien FormData)
-       const response = await fetch(url, {
-        method: "POST",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+        // Utiliser fetch directement pour FormData (apiFetch ne supporte pas bien FormData)
+        response = await fetch(url, {
+          method: "POST",
+          body: formData,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -137,7 +154,7 @@ export default function Posting({
         setPreview(null);
         setPreviewType(null);
         if (onPostCreated) {
-          onPostCreated();
+          onPostCreated(data);
         }
       } else {
         if (onPostEdited) {
@@ -154,9 +171,12 @@ export default function Posting({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-4 p-4 rounded-[5px] shadow-2xl bg-bg-lighter w-full max-w-2xl mx-auto"
+      className={cn(
+        "flex flex-col gap-4 p-4 rounded-[5px] w-full max-w-2xl mx-auto",
+        variant === "comment" ? "bg-bg shadow-md border border-fg/20" : "bg-bg-lighter shadow-2xl"
+      )}
     >
-      {!isEditing && <Publisher username={user?.username || "Invité"} size="md" />}
+      {!isEditing && <Publisher username={user?.username || "Invité"} avatarUrl={user?.profilePicture} size="md" />}
       {error && (
         <div className="text-red-500 text-sm" role="alert">
           {error}
@@ -171,62 +191,69 @@ export default function Posting({
         name="post-text"
         value={content}
         onChange={handleContentChange}
-        placeholder="What's on your mind?"
-        rows={isEditing ? 4 : 8}
+        placeholder={variant === "comment" ? "Write a comment..." : "What's on your mind?"}
+        rows={isEditing ? 4 : (variant === "comment" ? 2 : 8)}
         className="shrink w-full resize-none rounded-lg border border-fg p-3 text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-gray-400"
       />
 
-      {/* Preview du média */}
-      {preview && previewType && (
-        <div className="relative rounded-lg overflow-hidden max-w-full bg-bg">
-          {previewType === "image" ? (
-            <img
-              src={preview}
-              alt="Aperçu du média"
-              className="w-full max-h-64 object-cover rounded-lg"
-            />
-          ) : (
-            <video
-              src={preview}
-              controls
-              className="w-full max-h-64 object-cover rounded-lg"
-            />
+      {/* Aperçu ou Input file si non comment */}
+      {variant !== "comment" && (
+        <>
+          {/* Preview du média */}
+          {preview && previewType && (
+            <div className="relative rounded-lg overflow-hidden max-w-full bg-bg">
+              {previewType === "image" ? (
+                <img
+                  src={preview}
+                  alt="Aperçu du média"
+                  className="w-full max-h-64 object-cover rounded-lg"
+                />
+              ) : (
+                <video
+                  src={preview}
+                  controls
+                  className="w-full max-h-64 object-cover rounded-lg"
+                />
+              )}
+              <button
+                type="button"
+                onClick={handleRemoveMedia}
+                className="absolute top-2 right-2 p-1 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+                aria-label="Supprimer le média"
+              >
+                <IconClose className="size-5 text-white" />
+              </button>
+            </div>
           )}
-          <button
-            type="button"
-            onClick={handleRemoveMedia}
-            className="absolute top-2 right-2 p-1 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
-            aria-label="Supprimer le média"
-          >
-            <IconClose className="size-5 text-white" />
-          </button>
-        </div>
+
+          {/* Input file caché */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            onChange={handleFileInputChange}
+            className="hidden"
+            aria-label="Sélectionner un média"
+          />
+        </>
       )}
 
-      {/* Input file caché */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*,video/*"
-        onChange={handleFileInputChange}
-        className="hidden"
-        aria-label="Sélectionner un média"
-      />
-
       {/* Boutons d'action */}
-      <div className="flex items-center gap-2 justify-between">
-        <button
-          type="button"
-          onClick={triggerFileInput}
-          disabled={isSubmitting}
-          className={cn(
-            "rounded-full transition-colors hover:bg-primary/10",
-            isSubmitting && "opacity-50 cursor-not-allowed"
-          )}
-          aria-label="Ajouter une image ou vidéo"
-        >
-          <IconImage className="size-6 text-primary" />
-        </button>
+      <div className={cn("flex items-center gap-2", variant === "comment" ? "justify-end" : "justify-between")}>
+        {variant !== "comment" && (
+          <button
+            type="button"
+            onClick={triggerFileInput}
+            disabled={isSubmitting}
+            className={cn(
+              "rounded-full transition-colors hover:bg-primary/10",
+              isSubmitting && "opacity-50 cursor-not-allowed"
+            )}
+            aria-label="Ajouter une image ou vidéo"
+          >
+            <IconImage className="size-6 text-primary" />
+          </button>
+        )}
 
         <div className="flex gap-2">
           {isEditing && (

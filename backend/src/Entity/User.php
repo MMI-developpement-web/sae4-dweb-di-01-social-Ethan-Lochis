@@ -16,11 +16,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['post:read'])]
+    #[Groups(['post:read', 'comment:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 22, unique: true)]
-    #[Groups(['post:read'])]
+    #[Groups(['post:read', 'comment:read'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255, unique: true)]
@@ -30,18 +30,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 500, nullable: true)]
-    #[Groups(['post:read'])]
+    #[Groups(['post:read', 'comment:read'])]
     private ?string $profilePicture = null;
 
     #[ORM\Column(length: 500, nullable: true)]
-    #[Groups(['post:read'])]
+    #[Groups(['post:read', 'comment:read'])]
     private ?string $bio = null;
 
     #[ORM\Column(length: 100, nullable: true)]
-    #[Groups(['post:read'])]
+    #[Groups(['post:read', 'comment:read'])]
     private ?string $location = null;
 
-    #[Groups(['post:read'])]
+    #[Groups(['post:read', 'comment:read'])]
     private bool $isFollowedByCurrentUser = false;
 
     #[ORM\Column(type: 'json')]
@@ -79,6 +79,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(nullable: false)]
     private bool $isBlocked = false;
+
+    /**
+     * @var Collection<int, Comments>
+     */
+    #[ORM\OneToMany(targetEntity: Comments::class, mappedBy: 'author', orphanRemoval: true)]
+    private Collection $Comments;
     #[ORM\JoinColumn(name: 'Following', referencedColumnName: 'id')]
     #[ORM\InverseJoinColumn(name: 'Followed', referencedColumnName: 'id')]
 
@@ -88,6 +94,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->Liked = new ArrayCollection();
         $this->Subscription = new ArrayCollection();
         $this->Subscibed = new ArrayCollection();
+        $this->Comments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -361,6 +368,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // Supprimer le rôle
             $this->roles = array_filter($this->roles, fn($role) => $role !== 'ROLE_ADMIN');
         }
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Comments>
+     */
+    public function getComments(): Collection
+    {
+        return $this->Comments;
+    }
+
+    public function addComment(Comments $comment): static
+    {
+        if (!$this->Comments->contains($comment)) {
+            $this->Comments->add($comment);
+            $comment->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeComment(Comments $comment): static
+    {
+        if ($this->Comments->removeElement($comment)) {
+            // set the owning side to null (unless already changed)
+            if ($comment->getAuthor() === $this) {
+                $comment->setAuthor(null);
+            }
+        }
+
         return $this;
     }
 }

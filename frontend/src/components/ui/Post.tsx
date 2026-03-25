@@ -8,9 +8,12 @@ import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 import FollowButton from "./FollowButton";
 import Posting from "../Posting";
+import Comment from "./Comment";
+import { IconComment } from "./Icons";
+import { motion, AnimatePresence } from "framer-motion";
 
 // --- Variants ---
-const postVariants = cva("flex items-start gap-3 rounded-sm p-4 pr-12 shadow-md w-full", {
+const postVariants = cva("grid grid-cols-[auto_minmax(0,1fr)] gap-3 gap-y-4 rounded-sm p-4 pr-12 shadow-md w-full", {
   variants: {
     background: {
       default: "bg-bg-lighter",
@@ -40,6 +43,7 @@ interface PostProps {
   timestamp?: string;
   isReply?: boolean;
   likesCount?: number;
+  commentsCount?: number;
   likedByCurrentUser?: boolean;
   background?: "default" | "darker";
   onDelete?: (id: number) => void;
@@ -56,6 +60,7 @@ export default function Post({
   timestamp = "il y a 2h",
   isReply = false,
   likesCount = 0,
+  commentsCount = 0,
   likedByCurrentUser = false,
   background = "default",
   onDelete,
@@ -70,6 +75,54 @@ export default function Post({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+
+  // States pour les commentaires
+  const [localCommentsCount, setLocalCommentsCount] = useState(commentsCount);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [comments, setComments] = useState<any[]>([]);
+  const [commentsPage, setCommentsPage] = useState(0);
+  const [hasMoreComments, setHasMoreComments] = useState(true);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
+
+  const fetchComments = async (reset = false) => {
+    if (!id || isLoadingComments || (!hasMoreComments && !reset)) return;
+    
+    setIsLoadingComments(true);
+    try {
+      const offset = reset ? 0 : commentsPage * 7;
+      const response = await apiFetch(`/posts/${id}/comments?limit=7&offset=${offset}`) as any[];
+      
+      if (reset) {
+        setComments(response);
+      } else {
+        setComments(prev => [...prev, ...response]);
+      }
+
+      setHasMoreComments(response.length === 7);
+      if (!reset) {
+        setCommentsPage(prev => prev + 1);
+      } else {
+        setCommentsPage(1);
+      }
+    } catch (error) {
+      console.error("Erreur lors du chargement des commentaires:", error);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+
+  const toggleComments = () => {
+    const newState = !isCommentsOpen;
+    setIsCommentsOpen(newState);
+    if (newState && comments.length === 0) {
+      fetchComments(true);
+    }
+  };
+
+  const handleCommentCreated = (newComment: any) => {
+    setComments(prev => [newComment, ...prev]);
+    setLocalCommentsCount(prev => prev + 1);
+  };
 
   const handleLike = async () => {
     if (!user) {
@@ -110,7 +163,7 @@ export default function Post({
     return (
       <div className={postVariants({ background })}>
         <img
-          src={avatarUrl ?? `https://ui-avatars.com/api/?name=${username}&background=random`}
+          src={getMediaUrl(avatarUrl) ?? `https://ui-avatars.com/api/?name=${username}&background=random`}
           alt={`${username}'s avatar`}
           className={avatarVariants({ size: isReply ? "reply" : "default" })}
         />
@@ -133,7 +186,7 @@ export default function Post({
       {/* --- Colonne gauche : Avatar --- */}
       <img
         src={
-          avatarUrl ??
+          getMediaUrl(avatarUrl) ??
           `https://ui-avatars.com/api/?name=${username}&background=random`
         }
         alt={`${username}'s avatar`}
@@ -186,6 +239,15 @@ export default function Post({
             defaultCount={likesCount}
             onClick={handleLike}
           />
+          <button 
+            onClick={toggleComments}
+            className="flex items-center gap-1.5 text-inactive hover:text-primary transition-colors focus:outline-none"
+            aria-label="Afficher les commentaires"
+          >
+            <IconComment />
+            <span className="text-14 font-medium">{localCommentsCount}</span>
+          </button>
+
           {user?.username === username && (
             <div className="ml-auto flex gap-3">
               <button
@@ -217,6 +279,59 @@ export default function Post({
         onCancel={() => setIsModalOpen(false)}
         isLoading={isDeleting}
       />
+      
+      {/* Section Commentaires */}
+      <AnimatePresence>
+        {isCommentsOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="w-full flex col-span-2 col-start-1 flex-col gap-4 mt-4 overflow-hidden"
+          >
+            {user && id && (
+              <div className="pl-14 w-full">
+                <Posting 
+                  variant="comment" 
+                  postId={id} 
+                  onPostCreated={handleCommentCreated} 
+                />
+              </div>
+            )}
+            
+            <div className="flex flex-col gap-2 mt-2 w-full">
+              {comments.map((comment, i) => (
+                <Comment
+                  key={`${comment.id}-${i}`}
+                  id={comment.id}
+                  text={comment.TextContent}
+                  authorUsername={comment.author?.username || "Utilisateur"}
+                  authorAvatarUrl={comment.author?.profilePicture}
+                  createdAt={comment.CreatedAt}
+                />
+              ))}
+              
+              {hasMoreComments && comments.length > 0 && (
+                <div className="pl-14 mt-2 mb-2">
+                  <button
+                    onClick={() => fetchComments()}
+                    disabled={isLoadingComments}
+                    className="text-14 font-medium text-primary hover:text-primary/80 transition-colors focus:outline-none"
+                  >
+                    {isLoadingComments ? "Chargement..." : "Charger plus de réponses"}
+                  </button>
+                </div>
+              )}
+              
+              {isLoadingComments && comments.length === 0 && (
+                <div className="pl-14 text-14 text-inactive mt-2 flex items-center justify-center py-4">
+                  Chargement des commentaires...
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </figure>
   );
 }

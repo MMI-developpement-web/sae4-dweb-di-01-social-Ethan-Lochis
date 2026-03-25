@@ -237,10 +237,12 @@ export default function Home() {
                     id={post.id}
                     authorId={post.Author?.id}
                     username={post.Author.username}
+                    avatarUrl={post.Author.profilePicture}
                     text={post.TextContent}
                     mediaUrl={post.mediaUrl}
                     timestamp={new Date(post.CreatedAt).toLocaleDateString()}
                     likesCount={post.likesCount}
+                    commentsCount={post.commentsCount}
                     likedByCurrentUser={post.isLikedByCurrentUser}
                     onDelete={handlePostDeleted}
                   />

@@ -40,6 +40,7 @@ class Post
     public function __construct()
     {
         $this->LikedBy = new ArrayCollection();
+        $this->Comments = new ArrayCollection();
     }
 
     #[Groups(['post:read'])]
@@ -56,6 +57,12 @@ class Post
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['post:read', 'post:write'])]
     private ?string $media_url = null;
+
+    /**
+     * @var Collection<int, Comments>
+     */
+    #[ORM\OneToMany(targetEntity: Comments::class, mappedBy: 'CommentOf', orphanRemoval: true)]
+    private Collection $Comments;
 
     #[Groups(['post:read'])]
     public function getIsLikedByCurrentUser(): bool
@@ -149,9 +156,45 @@ class Post
         return $this->media_url;
     }
 
+    #[Groups(['post:read'])]
+    public function getCommentsCount(): int
+    {
+        return $this->Comments ? $this->Comments->count() : 0;
+    }
+
     public function setMediaUrl(?string $media_url): static
     {
         $this->media_url = $media_url;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Comments>
+     */
+    public function getComments(): Collection
+    {
+        return $this->Comments;
+    }
+
+    public function addComment(Comments $comment): static
+    {
+        if (!$this->Comments->contains($comment)) {
+            $this->Comments->add($comment);
+            $comment->setCommentOf($this);
+        }
+
+        return $this;
+    }
+
+    public function removeComment(Comments $comment): static
+    {
+        if ($this->Comments->removeElement($comment)) {
+            // set the owning side to null (unless already changed)
+            if ($comment->getCommentOf() === $this) {
+                $comment->setCommentOf(null);
+            }
+        }
 
         return $this;
     }

@@ -98,7 +98,7 @@ class UserService
 
             $uploadedFile->move($uploadDir, $newFileName);
 
-            return 'uploads/profiles/' . $newFileName;
+            return '/uploads/profiles/' . $newFileName;
         } catch (\Exception $e) {
             throw new InvalidArgumentException('Error uploading profile picture: ' . $e->getMessage());
         }
