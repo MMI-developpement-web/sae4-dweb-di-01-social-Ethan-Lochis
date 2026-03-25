@@ -8,20 +8,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { IconSpinner } from "../components/ui/Icons";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import type { PostType } from "../types/post";
 
-interface PostType {
-  id: number;
-  TextContent: string;
-  mediaUrl?: string;
-  CreatedAt: string;
-  Author: {
-    id: number;
-    username: string;
-    isFollowedByCurrentUser?: boolean;
-  };
-  likesCount?: number;
-  isLikedByCurrentUser?: boolean;
-}
 
 export default function Profile() {
   const [posts, setPosts] = useState<PostType[]>([]);

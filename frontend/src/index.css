@@ -11,25 +11,14 @@
   /* --- Hovers --- */
   --color-primary-hover: #7a6ad1;
   --color-secondary-hover: #ff5c5c;
+}
 
-  /* --- Bordures --- */
-
-
-  /* Thème alternatif */
-  [data-theme="default"] {
-    --color-primary: #897ce9;
-    --color-secondary: #ff7675; 
-    --color-bg: #1a2238;
-    --color-fg: #e6e6ea;
-  }
-
-  /* Mode sombre */
-  [data-theme="light"] {
-    --color-primary: #5a67d8;
-    --color-secondary: #ff7675;
-    --color-bg: #e6e6e6;
-    --color-fg: #1a2238;
-  }
+/* Mode clair */
+[data-theme="light"] {
+  --color-primary: #5a67d8;
+  --color-secondary: #ff7675;
+  --color-bg: #e6e6e6;
+  --color-fg: #1a2238;
 }
 
 @theme inline {

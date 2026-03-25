@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 class PostController extends AbstractController
 {
     #[Route('', name: 'list', methods: ['GET'])]
-    public function list(Request $request, PostRepository $postRepository, #[CurrentUser] ?User $user): JsonResponse
+    public function list(Request $request, PostRepository $postRepository, PostService $postService, #[CurrentUser] ?User $user): JsonResponse
     {
         $limit = $request->query->getInt('limit', 7);
         $offset = $request->query->getInt('offset', 0);
@@ -30,15 +30,7 @@ class PostController extends AbstractController
             $posts = $postRepository->findLatest($limit, $offset);
         }
 
-        if ($user) {
-            foreach ($posts as $post) {
-                $post->setIsLikedByCurrentUser($post->getLikedBy()->contains($user));
-                $author = $post->getAuthor();
-                if ($author) {
-                    $author->setIsFollowedByCurrentUser($user->getSubscription()->contains($author));
-                }
-            }
-        }
+        $postService->hydratePostRelations($posts, $user);
 
         return $this->json(
             $posts,
@@ -48,7 +40,7 @@ class PostController extends AbstractController
         );
     }
     #[Route('/user/{userId}', name: 'by_user', requirements: ['userId' => '\d+'], methods: ['GET'])]
-    public function listByUser(int $userId, UserRepository $userRepository, PostRepository $postRepository, #[CurrentUser] ?User $currentUser): JsonResponse
+    public function listByUser(int $userId, UserRepository $userRepository, PostRepository $postRepository, PostService $postService, #[CurrentUser] ?User $currentUser): JsonResponse
     {
         $user = $userRepository->find($userId);
 
@@ -58,15 +50,7 @@ class PostController extends AbstractController
 
         $posts = $postRepository->findByAuthor($userId);
 
-        if ($currentUser) {
-            foreach ($posts as $post) {
-                $post->setIsLikedByCurrentUser($post->getLikedBy()->contains($currentUser));
-                $author = $post->getAuthor();
-                if ($author) {
-                    $author->setIsFollowedByCurrentUser($currentUser->getSubscription()->contains($author));
-                }
-            }
-        }
+        $postService->hydratePostRelations($posts, $currentUser);
 
         return $this->json(
             $posts,
@@ -76,7 +60,7 @@ class PostController extends AbstractController
         );
     }
     #[Route('/{id}', name: 'show', requirements: ['id' => '\\d+'], methods: ['GET'])]
-    public function show(int $id, PostRepository $postRepository, #[CurrentUser] ?User $user): JsonResponse
+    public function show(int $id, PostRepository $postRepository, PostService $postService, #[CurrentUser] ?User $user): JsonResponse
     {
         $post = $postRepository->find($id);
 
@@ -84,13 +68,7 @@ class PostController extends AbstractController
             return $this->json(['error' => 'Post not found.'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        if ($user) {
-            $post->setIsLikedByCurrentUser($post->getLikedBy()->contains($user));
-            $author = $post->getAuthor();
-            if ($author) {
-                $author->setIsFollowedByCurrentUser($user->getSubscription()->contains($author));
-            }
-        }
+        $postService->hydratePostRelation($post, $user);
 
         return $this->json($post, 200, [], ['groups' => ['post:read']]);
     }
@@ -145,12 +123,10 @@ class PostController extends AbstractController
         }
 
         try {
-            // Créer le DTO à partir de la requête multipart/form-data
             $payload = new CreatePostPayload();
             $payload->setTextContent($request->request->get('textContent', ''));
             $payload->setMedia($request->files->get('media'));
 
-            // Validation du textContent
             if (empty($payload->getTextContent())) {
                 return $this->json(['error' => 'Le contenu du post ne peut pas être vide.'], JsonResponse::HTTP_BAD_REQUEST);
             }
@@ -163,11 +139,7 @@ class PostController extends AbstractController
 
             $post = $postService->updatePost($post, $payload, $removeMedia);
 
-            $post->setIsLikedByCurrentUser($post->getLikedBy()->contains($user));
-            $author = $post->getAuthor();
-            if ($author) {
-                $author->setIsFollowedByCurrentUser($user->getSubscription()->contains($author));
-            }
+            $postService->hydratePostRelation($post, $user);
 
             return $this->json($post, JsonResponse::HTTP_OK, [], ['groups' => ['post:read']]);
         } catch (\InvalidArgumentException $e) {

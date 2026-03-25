@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { IconHeart } from "./Icons";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 
 const likeVariants = cva(
@@ -48,11 +48,6 @@ export default function Like({
 }: LikeProps) {
   const [liked, setLiked] = useState(defaultLiked);
   const [count, setCount] = useState(defaultCount);
-
-  useEffect(() => {
-    setLiked(defaultLiked);
-    setCount(defaultCount);
-  }, [defaultLiked, defaultCount]);
 
   function handleClick() {
     const next = !liked;

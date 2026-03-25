@@ -13,7 +13,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 #[AsEntityListener(event: Events::preUpdate, method: 'preUpdate', entity: Post::class)]
 class PostEntityListener
 {
-    private $params;
+    private ParameterBagInterface $params;
 
     public function __construct(ParameterBagInterface $params)
     {

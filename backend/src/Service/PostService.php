@@ -130,4 +130,33 @@ class PostService
             'likesCount' => $post->getLikedBy()->count(),
         ];
     }
+
+    /**
+     * Hydrate les relations isLikedByCurrentUser et isFollowedByCurrentUser
+     * sur un tableau de posts pour l'utilisateur courant.
+     *
+     * @param Post[] $posts
+     */
+    public function hydratePostRelations(array $posts, ?User $currentUser): void
+    {
+        if ($currentUser === null) {
+            return;
+        }
+
+        foreach ($posts as $post) {
+            $post->setIsLikedByCurrentUser($post->getLikedBy()->contains($currentUser));
+            $author = $post->getAuthor();
+            if ($author) {
+                $author->setIsFollowedByCurrentUser($currentUser->getSubscription()->contains($author));
+            }
+        }
+    }
+
+    /**
+     * Hydrate les relations pour un seul post.
+     */
+    public function hydratePostRelation(Post $post, ?User $currentUser): void
+    {
+        $this->hydratePostRelations([$post], $currentUser);
+    }
 }

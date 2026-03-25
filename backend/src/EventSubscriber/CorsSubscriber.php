@@ -10,6 +10,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CorsSubscriber implements EventSubscriberInterface
 {
+    private string $allowedOrigin;
+
+    public function __construct()
+    {
+        $this->allowedOrigin = $_ENV['CORS_ALLOW_ORIGIN'] ?? 'http://localhost:5173';
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -40,7 +47,7 @@ class CorsSubscriber implements EventSubscriberInterface
         }
 
         $response = $event->getResponse();
-        $response->headers->set('Access-Control-Allow-Origin', '*');
+        $response->headers->set('Access-Control-Allow-Origin', $this->allowedOrigin);
         $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
         $response->headers->set('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
         $response->headers->set('Access-Control-Allow-Credentials', 'true');

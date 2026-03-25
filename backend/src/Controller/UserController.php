@@ -114,12 +114,6 @@ class UserController extends AbstractController
             return $this->json(['error' => 'Authentication required.'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
-        // Si c'est une requête POST normale ou via méthode override dynamique
-        $method = $request->getMethod();
-        if ($method !== 'POST' && $method !== 'PATCH') {
-             return $this->json(['error' => 'Méthode non autorisée.'], JsonResponse::HTTP_METHOD_NOT_ALLOWED);
-        }
-
         // Handle multipart/form-data
         $bio = $request->request->get('bio');
         $location = $request->request->get('location');

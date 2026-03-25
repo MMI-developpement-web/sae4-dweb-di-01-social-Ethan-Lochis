@@ -88,12 +88,10 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
         formData.append("profilePicture", selectedFile);
       }
 
-      console.log("Envoi des données:", { bio, location, hasFile: !!selectedFile });
-
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/users/me`,
         {
-          method: "POST", // Symfony/PHP et multipart/form-data ont du mal avec PATCH, donc on utilise POST
+          method: "POST",
           body: formData,
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -101,26 +99,21 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
         }
       );
 
-      console.log("Status de la réponse:", response.status);
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Erreur lors de la mise à jour");
       }
 
       const updatedUser = await response.json();
-      console.log("Utilisateur mis à jour:", updatedUser);
       
       updateUser({ ...user, ...updatedUser });
       addNotification("Profil mis à jour avec succès", "success");
       onClose();
     } catch (err: unknown) {
       if (err instanceof Error) {
-        console.error("Erreur:", err.message);
         setError(err.message);
         addNotification(err.message, "error");
       } else {
-        console.error("Erreur inconnue");
         setError("Erreur lors de la mise à jour");
         addNotification("Erreur lors de la mise à jour", "error");
       }

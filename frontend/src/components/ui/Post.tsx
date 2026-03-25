@@ -4,7 +4,7 @@ import { apiFetch } from "../../lib/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { getMediaUrl } from "../../lib/utils";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
 import FollowButton from "./FollowButton";
 import Posting from "../Posting";
@@ -66,15 +66,6 @@ export default function Post({
   
   const [text, setText] = useState(initialText);
   const [mediaUrl, setMediaUrl] = useState(initialMediaUrl);
-  
-  // Sync with props
-  useEffect(() => {
-    setText(initialText);
-  }, [initialText]);
-  
-  useEffect(() => {
-    setMediaUrl(initialMediaUrl);
-  }, [initialMediaUrl]);
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);

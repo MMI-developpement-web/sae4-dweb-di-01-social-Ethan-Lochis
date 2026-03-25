@@ -7,20 +7,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { RefreshIcon } from "../components/ui/Icons";
 import { motion } from 'framer-motion'; 
 import Button from "../components/ui/Button";
+import type { PostType } from "../types/post";
 
-interface PostType {
-  id: number;
-  TextContent: string;
-  mediaUrl?: string;
-  CreatedAt: string;
-  Author: {
-    id: number;
-    username: string;
-    isFollowedByCurrentUser?: boolean;
-  };
-  likesCount?: number;
-  isLikedByCurrentUser?: boolean;
-}
 
 export default function Home() {
   const [posts, setPosts] = useState<PostType[]>([]);
@@ -175,10 +163,10 @@ export default function Home() {
                   className="bg-bg border border-white/10 text-fg text-sm rounded-md px-2 py-1 outline-none focus:border-secondary transition-colors cursor-pointer"
                 >
                   <option value={0}>Auto-refresh : Off</option>
-                  <option value={10000}>10 secondes (utiliser pour le test)</option>
+                  <option value={10000}>10 secondes (test)</option>
                   <option value={60000}>Toutes les minutes</option>
-                  <option value={30000}>Toutes les 5 minutes</option>
-                  <option value={60000}>Toutes les 15 minutes</option>
+                  <option value={300000}>Toutes les 5 minutes</option>
+                  <option value={900000}>Toutes les 15 minutes</option>
                 </select>
 
                 {/* Ton bouton actuel */}
