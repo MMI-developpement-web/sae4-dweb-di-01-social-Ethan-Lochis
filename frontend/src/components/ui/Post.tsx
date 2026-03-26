@@ -294,16 +294,18 @@ export default function Post({
         )}
       </div>
 
-      <ConfirmModal
-        isOpen={isModalOpen}
-        title="Supprimer la publication"
-        description="Êtes-vous sûr de vouloir supprimer définitivement cette publication ? Cette action est irréversible."
-        confirmText="Supprimer"
-        cancelText="Annuler"
-        onConfirm={handleDelete}
-        onCancel={() => setIsModalOpen(false)}
-        isLoading={isDeleting}
-      />
+      {isModalOpen && (
+        <ConfirmModal
+          isOpen={isModalOpen}
+          title="Supprimer la publication"
+          description="Êtes-vous sûr de vouloir supprimer définitivement cette publication ? Cette action est irréversible."
+          confirmText="Supprimer"
+          cancelText="Annuler"
+          onConfirm={handleDelete}
+          onCancel={() => setIsModalOpen(false)}
+          isLoading={isDeleting}
+        />
+      )}
 
       {/* Section Commentaires */}
       <AnimatePresence>

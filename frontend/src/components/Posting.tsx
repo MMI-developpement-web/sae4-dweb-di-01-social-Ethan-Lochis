@@ -4,6 +4,7 @@ import Button from "./ui/Button";
 import { useAuth } from "../contexts/AuthContext";
 import { IconImage, IconClose } from "./ui/Icons";
 import { cn, getMediaUrl } from "../lib/utils";
+import { usePostForm } from "../hooks/usePostForm";
 
 interface PostingProps {
   onPostCreated?: (data?: any) => void;
@@ -40,10 +41,16 @@ export default function Posting({
   const [previewType, setPreviewType] = useState<"image" | "video" | null>(initialPreviewType as "image" | "video" | null);
   const [mediaRemoved, setMediaRemoved] = useState(false);
   
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
+
+  const { submitAction, isSubmitting } = usePostForm({
+    variant,
+    postId,
+    editPostId,
+    isEditing,
+  });
 
   function handleContentChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setContent(e.target.value);
@@ -99,72 +106,26 @@ export default function Posting({
     e.preventDefault();
     if (!content.trim()) return;
 
-    setIsSubmitting(true);
     setError(null);
+    const { data, error: submitError } = await submitAction(content, selectedFile, mediaRemoved);
 
-    try {
-      let response;
-      if (variant === "comment" && postId) {
-        // Envoi simple en JSON pour les commentaires
-        response = await fetch(`${import.meta.env.VITE_API_URL}/posts/${postId}/comments`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({ TextContent: content }),
-        });
-      } else {
-        // Créer FormData pour multipart/form-data (posts avec potentiels médias)
-        const formData = new FormData();
-        formData.append("textContent", content);
-        
-        if (selectedFile) {
-          formData.append("media", selectedFile);
-        }
-        
-        if (isEditing && mediaRemoved && !selectedFile) {
-          formData.append("removeMedia", "true");
-        }
+    if (submitError) {
+      setError(submitError);
+      return;
+    }
 
-        const url = isEditing 
-          ? `${import.meta.env.VITE_API_URL}/posts/${editPostId}`
-          : `${import.meta.env.VITE_API_URL}/posts`;
-
-        // Utiliser fetch directement pour FormData (apiFetch ne supporte pas bien FormData)
-        response = await fetch(url, {
-          method: "POST",
-          body: formData,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+    if (!isEditing) {
+      setContent("");
+      setSelectedFile(null);
+      setPreview(null);
+      setPreviewType(null);
+      if (onPostCreated) {
+        onPostCreated(data);
       }
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || (isEditing ? "Erreur lors de la modification." : "Erreur lors de la publication."));
+    } else {
+      if (onPostEdited) {
+        onPostEdited(data);
       }
-
-      const data = await response.json();
-
-      if (!isEditing) {
-        setContent("");
-        setSelectedFile(null);
-        setPreview(null);
-        setPreviewType(null);
-        if (onPostCreated) {
-          onPostCreated(data);
-        }
-      } else {
-        if (onPostEdited) {
-          onPostEdited(data);
-        }
-      }
-    } catch (err: any) {
-      setError(err.message || (isEditing ? "Erreur lors de la modification." : "Erreur lors de la publication."));
-    } finally {
-      setIsSubmitting(false);
     }
   }
 

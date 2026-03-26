@@ -5,7 +5,13 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
   const token = localStorage.getItem('token');
 
   const headers = new Headers(options.headers || {});
-  headers.set('Content-Type', 'application/json');
+  
+  if (!(options.body instanceof FormData)) {
+    if (!headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
+    }
+  }
+  
   headers.set('Accept', 'application/json');
 
   if (token) {
