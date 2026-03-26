@@ -268,7 +268,7 @@ export default function Post({
               className="flex items-center gap-1.5 text-inactive hover:text-primary transition-colors focus:outline-none"
               aria-label="Afficher les commentaires"
             >
-              <IconComment />
+              <IconComment className="size-5" />
               <span className="text-14 font-medium">{localCommentsCount}</span>
             </button>
 
