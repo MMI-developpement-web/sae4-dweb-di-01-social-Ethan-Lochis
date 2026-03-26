@@ -365,7 +365,7 @@ export default function Post({
 
               {!hasMoreComments && comments.length > 0 && (
                 <div className="pl-14 text-14 text-inactive mt-4 mb-2 flex items-center justify-center">
-                  Vous avez lu tous les commentaires pour ce post.
+                  Vous avez lu tous les commentaires pour ce post !
                 </div>
               )}
 
