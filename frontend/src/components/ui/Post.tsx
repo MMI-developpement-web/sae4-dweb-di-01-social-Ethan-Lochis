@@ -363,6 +363,12 @@ export default function Post({
                 </div>
               )}
 
+              {!hasMoreComments && comments.length > 0 && (
+                <div className="pl-14 text-14 text-inactive mt-4 mb-2 flex items-center justify-center">
+                  Vous avez lu tous les commentaires pour ce post.
+                </div>
+              )}
+
               {isLoadingComments && comments.length === 0 && (
                 <div className="pl-14 text-14 text-inactive mt-2 flex items-center justify-center py-4">
                   Chargement des commentaires...
