@@ -58,6 +58,11 @@ class UserService
             throw new InvalidArgumentException('Cannot follow yourself.');
         }
 
+        // Vérifier si le target a bloqué le follower
+        if ($target->getBlocked()->contains($follower)) {
+            throw new InvalidArgumentException('Vous ne pouvez pas suivre cet utilisateur.');
+        }
+
         if ($follower->getSubscription()->contains($target)) {
             throw new InvalidArgumentException('Already following this user.');
         }
@@ -76,6 +81,42 @@ class UserService
 
         $follower->removeSubscription($target);
         $this->userRepository->save($follower, true);
+
+        return true;
+    }
+
+    public function blockUser(User $blocker, User $target): bool
+    {
+        if ($blocker->getId() === $target->getId()) {
+            throw new InvalidArgumentException('Vous ne pouvez pas vous bloquer vous-même.');
+        }
+
+        if ($blocker->getBlocked()->contains($target)) {
+            throw new InvalidArgumentException('Cet utilisateur est déjà bloqué.');
+        }
+
+        // Ajouter le blocage
+        $blocker->addBlocked($target);
+
+        // Désabonner automatiquement le target s'il suivait le blocker
+        if ($target->getSubscription()->contains($blocker)) {
+            $target->removeSubscription($blocker);
+        }
+
+        $this->userRepository->save($blocker, true);
+        $this->userRepository->save($target, true);
+
+        return true;
+    }
+
+    public function unblockUser(User $blocker, User $target): bool
+    {
+        if (!$blocker->getBlocked()->contains($target)) {
+            throw new InvalidArgumentException('Cet utilisateur n\'est pas bloqué.');
+        }
+
+        $blocker->removeBlocked($target);
+        $this->userRepository->save($blocker, true);
 
         return true;
     }

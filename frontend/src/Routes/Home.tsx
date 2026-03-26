@@ -244,6 +244,7 @@ export default function Home() {
                     likesCount={post.likesCount}
                     commentsCount={post.commentsCount}
                     likedByCurrentUser={post.isLikedByCurrentUser}
+                    isCensored={post.isCensored}
                     onDelete={handlePostDeleted}
                   />
                 </motion.div>

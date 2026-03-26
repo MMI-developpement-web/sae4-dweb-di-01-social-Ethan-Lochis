@@ -3,25 +3,31 @@ import Like from "./Like";
 import { apiFetch } from "../../lib/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-import { getMediaUrl } from "../../lib/utils";
+import { getMediaUrl, formatTimeAgo } from "../../lib/utils";
 import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
-import FollowButton from "./FollowButton";
+import PostMenu from "./PostMenu";
 import Posting from "../Posting";
-import Comment from "./Comment";
 import { IconComment } from "./Icons";
 import { motion, AnimatePresence } from "framer-motion";
 
 // --- Variants ---
-const postVariants = cva("grid grid-cols-[auto_minmax(0,1fr)] gap-3 gap-y-4 rounded-sm p-4 pr-12 shadow-md w-full", {
-  variants: {
-    background: {
-      default: "bg-bg-lighter",
-      darker: "bg-bg",
-    }
+const postVariants = cva(
+  "grid grid-cols-[auto_minmax(0,1fr)] rounded-sm w-full",
+  {
+    variants: {
+      background: {
+        default: "bg-bg-lighter",
+        darker: "bg-bg",
+      },
+      size: {
+        default: "p-4 pr-12 gap-3 gap-y-4 shadow-md",
+        reply: "p-3 pr-4 gap-2 gap-y-2 shadow-sm border border-white/5",
+      },
+    },
+    defaultVariants: { background: "default", size: "default" },
   },
-  defaultVariants: { background: "default" },
-});
+);
 
 const avatarVariants = cva("rounded-full object-cover shrink-0", {
   variants: {
@@ -45,6 +51,7 @@ interface PostProps {
   likesCount?: number;
   commentsCount?: number;
   likedByCurrentUser?: boolean;
+  isCensored?: boolean;
   background?: "default" | "darker";
   onDelete?: (id: number) => void;
   onUpdate?: (post: any) => void;
@@ -62,13 +69,14 @@ export default function Post({
   likesCount = 0,
   commentsCount = 0,
   likedByCurrentUser = false,
+  isCensored = false,
   background = "default",
   onDelete,
-  onUpdate
+  onUpdate,
 }: PostProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   const [text, setText] = useState(initialText);
   const [mediaUrl, setMediaUrl] = useState(initialMediaUrl);
 
@@ -86,21 +94,23 @@ export default function Post({
 
   const fetchComments = async (reset = false) => {
     if (!id || isLoadingComments || (!hasMoreComments && !reset)) return;
-    
+
     setIsLoadingComments(true);
     try {
       const offset = reset ? 0 : commentsPage * 7;
-      const response = await apiFetch(`/posts/${id}/comments?limit=7&offset=${offset}`) as any[];
-      
+      const response = (await apiFetch(
+        `/posts/${id}/comments?limit=7&offset=${offset}`,
+      )) as any[];
+
       if (reset) {
         setComments(response);
       } else {
-        setComments(prev => [...prev, ...response]);
+        setComments((prev) => [...prev, ...response]);
       }
 
       setHasMoreComments(response.length === 7);
       if (!reset) {
-        setCommentsPage(prev => prev + 1);
+        setCommentsPage((prev) => prev + 1);
       } else {
         setCommentsPage(1);
       }
@@ -120,8 +130,8 @@ export default function Post({
   };
 
   const handleCommentCreated = (newComment: any) => {
-    setComments(prev => [newComment, ...prev]);
-    setLocalCommentsCount(prev => prev + 1);
+    setComments((prev) => [newComment, ...prev]);
+    setLocalCommentsCount((prev) => prev + 1);
   };
 
   const handleLike = async () => {
@@ -140,7 +150,7 @@ export default function Post({
 
   const handleDelete = async () => {
     if (!id || isDeleting) return;
-    
+
     setIsDeleting(true);
     try {
       await apiFetch(`/posts/${id}`, { method: "DELETE" });
@@ -163,26 +173,34 @@ export default function Post({
     return (
       <div className={postVariants({ background })}>
         <img
-          src={getMediaUrl(avatarUrl) ?? `https://ui-avatars.com/api/?name=${username}&background=random`}
+          src={
+            getMediaUrl(avatarUrl) ??
+            `https://ui-avatars.com/api/?name=${username}&background=random`
+          }
           alt={`${username}'s avatar`}
           className={avatarVariants({ size: isReply ? "reply" : "default" })}
         />
         <div className="flex flex-col gap-1 w-full relative">
-           <Posting 
-             isEditing={true}
-             editPostId={id!}
-             initialContent={text}
-             initialMediaUrl={mediaUrl}
-             onPostEdited={handlePostEdited}
-             onCancelEdit={() => setIsEditing(false)}
-           />
+          <Posting
+            isEditing={true}
+            editPostId={id!}
+            initialContent={text}
+            initialMediaUrl={mediaUrl}
+            onPostEdited={handlePostEdited}
+            onCancelEdit={() => setIsEditing(false)}
+          />
         </div>
       </div>
     );
   }
 
   return (
-    <figure className={postVariants({ background })}>
+    <figure
+      className={postVariants({
+        background,
+        size: isReply ? "reply" : "default",
+      })}
+    >
       {/* --- Colonne gauche : Avatar --- */}
       <img
         src={
@@ -203,14 +221,19 @@ export default function Post({
               <span className="text-14 text-gray-400">{timestamp}</span>
             </div>
             {authorId !== undefined && (
-              <FollowButton userId={authorId} />
+              <PostMenu userId={authorId} username={username} />
             )}
           </div>
           <span className="text-inactive text-14 ">@{username}</span>
         </div>
 
         {/* Corps du message */}
-        <p className="text-fg text-16 leading-relaxed whitespace-pre-wrap">{text}</p>
+        <p
+          className={`text-16 leading-relaxed whitespace-pre-wrap ${isCensored ? "text-red-400 italic" : "text-fg"}`}
+        >
+          {isCensored && <span className="mr-1">⚠️</span>}
+          {text}
+        </p>
 
         {/* Media si présent */}
         {mediaUrl && (
@@ -232,41 +255,43 @@ export default function Post({
         )}
 
         {/* Footer : actions */}
-        <div className="flex items-center gap-4 w-full mt-2">
-          <Like
-            size="sm"
-            defaultLiked={likedByCurrentUser}
-            defaultCount={likesCount}
-            onClick={handleLike}
-          />
-          <button 
-            onClick={toggleComments}
-            className="flex items-center gap-1.5 text-inactive hover:text-primary transition-colors focus:outline-none"
-            aria-label="Afficher les commentaires"
-          >
-            <IconComment />
-            <span className="text-14 font-medium">{localCommentsCount}</span>
-          </button>
+        {!isCensored && (
+          <div className="flex items-center gap-2 w-full mt-2">
+            <Like
+              size="sm"
+              defaultLiked={likedByCurrentUser}
+              defaultCount={likesCount}
+              onClick={handleLike}
+            />
+            <button
+              onClick={toggleComments}
+              className="flex items-center gap-1.5 text-inactive hover:text-primary transition-colors focus:outline-none"
+              aria-label="Afficher les commentaires"
+            >
+              <IconComment />
+              <span className="text-14 font-medium">{localCommentsCount}</span>
+            </button>
 
-          {user?.username === username && (
-            <div className="ml-auto flex gap-3">
-              <button
-                onClick={() => setIsEditing(true)}
-                disabled={isDeleting}
-                className="text-14 text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
-              >
-                Modifier
-              </button>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                disabled={isDeleting}
-                className="text-14 text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
-              >
-                {isDeleting ? "Suppression..." : "Supprimer"}
-              </button>
-            </div>
-          )}
-        </div>
+            {user?.username === username && (
+              <div className="ml-auto flex gap-3">
+                <button
+                  onClick={() => setIsEditing(true)}
+                  disabled={isDeleting}
+                  className="text-14 text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+                >
+                  Modifier
+                </button>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  disabled={isDeleting}
+                  className="text-14 text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
+                >
+                  {isDeleting ? "Suppression..." : "Supprimer"}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <ConfirmModal
@@ -279,7 +304,7 @@ export default function Post({
         onCancel={() => setIsModalOpen(false)}
         isLoading={isDeleting}
       />
-      
+
       {/* Section Commentaires */}
       <AnimatePresence>
         {isCommentsOpen && (
@@ -290,39 +315,52 @@ export default function Post({
             className="w-full flex col-span-2 col-start-1 flex-col gap-4 mt-4 overflow-hidden"
           >
             {user && id && (
-              <div className="pl-14 w-full">
-                <Posting 
-                  variant="comment" 
-                  postId={id} 
-                  onPostCreated={handleCommentCreated} 
+              <div className="pl-10 w-full mb-2">
+                <Posting
+                  variant="comment"
+                  postId={id}
+                  onPostCreated={handleCommentCreated}
                 />
               </div>
             )}
-            
-            <div className="flex flex-col gap-2 mt-2 w-full">
+
+            <div className="flex flex-col gap-2 w-full pl-10">
               {comments.map((comment, i) => (
-                <Comment
+                <Post
                   key={`${comment.id}-${i}`}
                   id={comment.id}
+                  authorId={comment.author?.id}
+                  username={comment.author?.username || "Utilisateur"}
+                  avatarUrl={comment.author?.profilePicture}
                   text={comment.TextContent}
-                  authorUsername={comment.author?.username || "Utilisateur"}
-                  authorAvatarUrl={comment.author?.profilePicture}
-                  createdAt={comment.CreatedAt}
+                  timestamp={
+                    comment.CreatedAt
+                      ? formatTimeAgo(comment.CreatedAt)
+                      : undefined
+                  }
+                  isReply={true}
+                  background="darker"
+                  likesCount={comment.likesCount}
+                  commentsCount={comment.commentsCount}
+                  likedByCurrentUser={comment.likedByCurrentUser}
+                  isCensored={comment.isCensored}
                 />
               ))}
-              
+
               {hasMoreComments && comments.length > 0 && (
-                <div className="pl-14 mt-2 mb-2">
+                <div className="pl-3 mt-2 mb-2">
                   <button
                     onClick={() => fetchComments()}
                     disabled={isLoadingComments}
                     className="text-14 font-medium text-primary hover:text-primary/80 transition-colors focus:outline-none"
                   >
-                    {isLoadingComments ? "Chargement..." : "Charger plus de réponses"}
+                    {isLoadingComments
+                      ? "Chargement..."
+                      : "Charger plus de réponses"}
                   </button>
                 </div>
               )}
-              
+
               {isLoadingComments && comments.length === 0 && (
                 <div className="pl-14 text-14 text-inactive mt-2 flex items-center justify-center py-4">
                   Chargement des commentaires...

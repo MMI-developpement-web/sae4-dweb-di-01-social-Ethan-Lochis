@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { FollowProvider } from "./contexts/FollowContext";
+import { BlockProvider } from "./contexts/BlockContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { Toaster } from "./components/ui/Toaster";
 import { setupAPIInterceptor } from "./lib/apiInterceptor";
@@ -47,8 +48,10 @@ createRoot(document.getElementById("root")!).render(
     <NotificationProvider>
       <AuthProvider>
         <FollowProvider>
-          <RouterProvider router={router} />
-          <Toaster />
+          <BlockProvider>
+            <RouterProvider router={router} />
+            <Toaster />
+          </BlockProvider>
         </FollowProvider>
       </AuthProvider>
     </NotificationProvider>

@@ -49,6 +49,12 @@ class CommentsController extends AbstractController
             return $this->json(['error' => 'Le contenu du commentaire ne peut pas être vide.'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
+        // Vérifier si l'auteur du post a bloqué l'utilisateur courant
+        $postAuthor = $post->getAuthor();
+        if ($postAuthor && $postAuthor->getBlocked()->contains($user)) {
+            return $this->json(['error' => 'Vous ne pouvez pas interagir avec ce contenu.'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
         $comment = new Comments();
         $comment->setTextContent(trim($data['TextContent']));
         $comment->setAuthor($user);

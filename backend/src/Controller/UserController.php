@@ -84,6 +84,63 @@ class UserController extends AbstractController
         }
     }
 
+    #[Route('/{id}/block', name: 'block', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function block(int $id, UserRepository $userRepository, UserService $userService, #[CurrentUser] ?User $currentUser): JsonResponse
+    {
+        if ($currentUser === null) {
+            return $this->json(['error' => 'Authentication required.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $targetUser = $userRepository->find($id);
+
+        if ($targetUser === null) {
+            return $this->json(['error' => 'User not found.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        try {
+            $userService->blockUser($currentUser, $targetUser);
+            return $this->json(['message' => 'Utilisateur bloqué avec succès.'], JsonResponse::HTTP_OK);
+        } catch (\InvalidArgumentException $e) {
+            return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+        }
+    }
+
+    #[Route('/{id}/block', name: 'unblock', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function unblock(int $id, UserRepository $userRepository, UserService $userService, #[CurrentUser] ?User $currentUser): JsonResponse
+    {
+        if ($currentUser === null) {
+            return $this->json(['error' => 'Authentication required.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $targetUser = $userRepository->find($id);
+
+        if ($targetUser === null) {
+            return $this->json(['error' => 'User not found.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        try {
+            $userService->unblockUser($currentUser, $targetUser);
+            return $this->json(['message' => 'Utilisateur débloqué avec succès.'], JsonResponse::HTTP_OK);
+        } catch (\InvalidArgumentException $e) {
+            return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+        }
+    }
+
+    #[Route('/me/blocked', name: 'blocked_list', methods: ['GET'])]
+    public function getBlockedUsers(#[CurrentUser] ?User $currentUser): JsonResponse
+    {
+        if ($currentUser === null) {
+            return $this->json(['error' => 'Authentication required.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $blockedUsers = array_map(
+            $this->serializeUser(...),
+            $currentUser->getBlocked()->toArray()
+        );
+
+        return $this->json($blockedUsers);
+    }
+
     #[Route('/me', name: 'me', methods: ['GET'])]
     public function getCurrentUser(#[CurrentUser] ?User $currentUser, UserRepository $userRepository): JsonResponse
     {
@@ -96,12 +153,18 @@ class UserController extends AbstractController
             $currentUser->getSubscription()->toArray()
         );
 
+        $blockedIds = array_map(
+            fn($u) => $u->getId(),
+            $currentUser->getBlocked()->toArray()
+        );
+
         // Compter les followers (utilisateurs qui suivent l'utilisateur courant)
         $followerCount = (int) $userRepository->countFollowers($currentUser);
 
         return $this->json([
             'user' => $this->serializeUser($currentUser),
             'followedIds' => $followedIds,
+            'blockedIds' => $blockedIds,
             'followingCount' => $currentUser->getSubscription()->count(),
             'followerCount' => $followerCount,
         ]);

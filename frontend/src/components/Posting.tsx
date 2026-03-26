@@ -172,11 +172,11 @@ export default function Posting({
     <form
       onSubmit={handleSubmit}
       className={cn(
-        "flex flex-col gap-4 p-4 rounded-[5px] w-full max-w-2xl mx-auto",
-        variant === "comment" ? "bg-bg shadow-md border border-fg/20" : "bg-bg-lighter shadow-2xl"
+        "flex flex-col rounded-[5px] w-full max-w-2xl mx-auto",
+        variant === "comment" ? "bg-bg shadow-md border border-fg/20 p-3 gap-2" : "bg-bg-lighter shadow-2xl p-4 gap-4"
       )}
     >
-      {!isEditing && <Publisher username={user?.username || "Invité"} avatarUrl={user?.profilePicture} size="md" />}
+      {!isEditing && <Publisher username={user?.username || "Invité"} avatarUrl={user?.profilePicture ?? undefined} size="md" />}
       {error && (
         <div className="text-red-500 text-sm" role="alert">
           {error}

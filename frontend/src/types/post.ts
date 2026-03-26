@@ -11,4 +11,5 @@ export interface PostType {
   likesCount?: number;
   commentsCount?: number;
   isLikedByCurrentUser?: boolean;
+  isCensored?: boolean;
 }

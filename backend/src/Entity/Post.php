@@ -46,6 +46,9 @@ class Post
     #[Groups(['post:read'])]
     public function getLikesCount(): int
     {
+        if ($this->isCensored) {
+            return 0;
+        }
         if ($this->Author && $this->Author->isBlocked()) {
             return 0;
         }
@@ -64,9 +67,16 @@ class Post
     #[ORM\OneToMany(targetEntity: Comments::class, mappedBy: 'CommentOf', orphanRemoval: true)]
     private Collection $Comments;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['post:read'])]
+    private ?bool $isCensored = null;
+
     #[Groups(['post:read'])]
     public function getIsLikedByCurrentUser(): bool
     {
+        if ($this->isCensored) {
+            return false;
+        }
         if ($this->Author && $this->Author->isBlocked()) {
             return false;
         }
@@ -86,9 +96,20 @@ class Post
 
     public function getTextContent(): ?string
     {
+        if ($this->isCensored) {
+            return "Ce message enfreint les conditions d'utilisation de la plateforme";
+        }
         if ($this->Author && $this->Author->isBlocked()) {
             return "⚠️ Ce compte a été bloqué pour non respect des conditions d’utilisation ⚠️";
         }
+        return $this->TextContent;
+    }
+
+    /**
+     * Retourne le contenu brut sans filtre de censure (pour l'admin).
+     */
+    public function getRawTextContent(): ?string
+    {
         return $this->TextContent;
     }
 
@@ -128,6 +149,9 @@ class Post
      */
     public function getLikedBy(): Collection
     {
+        if ($this->isCensored) {
+            return new ArrayCollection();
+        }
         if ($this->Author && $this->Author->isBlocked()) {
             return new ArrayCollection();
         }
@@ -153,12 +177,18 @@ class Post
     #[Groups(['post:read'])]
     public function getMediaUrl(): ?string
     {
+        if ($this->isCensored) {
+            return null;
+        }
         return $this->media_url;
     }
 
     #[Groups(['post:read'])]
     public function getCommentsCount(): int
     {
+        if ($this->isCensored) {
+            return 0;
+        }
         return $this->Comments ? $this->Comments->count() : 0;
     }
 
@@ -195,6 +225,18 @@ class Post
                 $comment->setCommentOf(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isCensored(): ?bool
+    {
+        return $this->isCensored;
+    }
+
+    public function setIsCensored(?bool $isCensored): static
+    {
+        $this->isCensored = $isCensored;
 
         return $this;
     }

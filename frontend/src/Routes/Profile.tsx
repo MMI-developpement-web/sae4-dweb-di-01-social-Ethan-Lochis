@@ -3,6 +3,7 @@ import Navbar from "../components/ui/Navbar";
 import ProfileHeader from "../components/ui/ProfileHeader";
 import Post from "../components/ui/Post";
 import ProfileEditModal from "../components/ProfileEditModal";
+import BlockedUsersModal from "../components/ui/BlockedUsersModal";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
 import { IconSpinner } from "../components/ui/Icons";
@@ -18,6 +19,7 @@ export default function Profile() {
   const [followingCount, setFollowingCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isBlockedModalOpen, setIsBlockedModalOpen] = useState(false);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -80,6 +82,7 @@ export default function Profile() {
             followerCount={followerCount}
             onLogout={handleLogout}
             onEditProfile={() => setIsEditModalOpen(true)}
+            onViewBlocked={() => setIsBlockedModalOpen(true)}
           />
         ) : (
           <div className="p-8 text-center text-gray-500">
@@ -137,6 +140,7 @@ export default function Profile() {
                     likesCount={post.likesCount}
                     commentsCount={post.commentsCount}
                     likedByCurrentUser={post.isLikedByCurrentUser}
+                    isCensored={post.isCensored}
                     background="darker"
                     onDelete={handlePostDeleted}
                   />
@@ -149,6 +153,10 @@ export default function Profile() {
       <ProfileEditModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
+      />
+      <BlockedUsersModal
+        isOpen={isBlockedModalOpen}
+        onClose={() => setIsBlockedModalOpen(false)}
       />
     </div>
   );

@@ -13,6 +13,7 @@ interface ProfileHeaderProps {
   followerCount: number;
   onLogout?: () => void;
   onEditProfile?: () => void;
+  onViewBlocked?: () => void;
 }
 
 export default function ProfileHeader({
@@ -25,6 +26,7 @@ export default function ProfileHeader({
   followerCount,
   onLogout,
   onEditProfile,
+  onViewBlocked,
 }: ProfileHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -61,6 +63,15 @@ export default function ProfileHeader({
               className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left cursor-pointer border-b border-gray-100"
             >
               Modifier le profil
+            </button>
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                onViewBlocked?.();
+              }}
+              className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left cursor-pointer border-b border-gray-100"
+            >
+              Profils bloqués
             </button>
             <button
               onClick={() => {

@@ -115,6 +115,12 @@ class PostService
 
     public function toggleLike(Post $post, User $user): array
     {
+        // Vérifier si l'auteur du post a bloqué l'utilisateur
+        $author = $post->getAuthor();
+        if ($author && $author->getBlocked()->contains($user)) {
+            throw new \InvalidArgumentException('Vous ne pouvez pas interagir avec ce contenu.');
+        }
+
         if ($post->getLikedBy()->contains($user)) {
             $post->removeLikedBy($user);
             $isLiked = false;

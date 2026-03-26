@@ -85,6 +85,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: Comments::class, mappedBy: 'author', orphanRemoval: true)]
     private Collection $Comments;
+
+    /**
+     * @var Collection<int, self>
+     */
+    #[ORM\ManyToMany(targetEntity: self::class, inversedBy: 'Blocked')]
+    private Collection $Blocked;
     #[ORM\JoinColumn(name: 'Following', referencedColumnName: 'id')]
     #[ORM\InverseJoinColumn(name: 'Followed', referencedColumnName: 'id')]
 
@@ -95,6 +101,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->Subscription = new ArrayCollection();
         $this->Subscibed = new ArrayCollection();
         $this->Comments = new ArrayCollection();
+        $this->Blocked = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -397,6 +404,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $comment->setAuthor(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, self>
+     */
+    public function getBlocked(): Collection
+    {
+        return $this->Blocked;
+    }
+
+    public function addBlocked(self $blocked): static
+    {
+        if (!$this->Blocked->contains($blocked)) {
+            $this->Blocked->add($blocked);
+        }
+
+        return $this;
+    }
+
+    public function removeBlocked(self $blocked): static
+    {
+        $this->Blocked->removeElement($blocked);
 
         return $this;
     }
