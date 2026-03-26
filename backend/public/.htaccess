@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Définit la base de réécriture pour le dossier public
+    RewriteBase /~{USER_UNILIM}/SAE4.DWeb-DI.01/backend/public/
+
+    # Redirige toutes les requêtes vers index.php si ce n'est pas un fichier ou un répertoire existant
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
