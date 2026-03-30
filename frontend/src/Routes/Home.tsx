@@ -8,6 +8,7 @@ import { RefreshIcon } from "../components/ui/Icons";
 import { motion } from 'framer-motion'; 
 import Button from "../components/ui/Button";
 import type { PostType } from "../types/post";
+import SearchBar from "../components/ui/SearchBar";
 
 
 export default function Home() {
@@ -37,8 +38,8 @@ export default function Home() {
   const fetchPosts = useCallback(
     async (reset = false) => {
       try {
-        setLoading((prev) => reset ? true : prev);
-        setLoadingMore((prev) => reset ? false : true);
+        setLoading(() => reset ? true : false);
+        setLoadingMore(() => reset ? false : true);
         
         // Use posts.length only if not resetting
         const currentOffset = reset ? 0 : posts.length;
@@ -123,9 +124,12 @@ export default function Home() {
 
   return (
     <div data-theme="default" className="bg-bg min-h-screen">
-      <header className="lg:pl-56 flex justify-start items-start bg-bg border-b border-white/10 p-3 ">
+      <header className="lg:pl-56 flex justify-between items-center bg-bg border-b border-white/10 p-3 w-full">
         <div>
           <img src="./Logo.png" alt="Kontakt logo" className="max-h-8 lg:max-h-16 w-auto" />
+        </div>
+        <div className="flex-1 max-w-lg mx-4">
+          <SearchBar />
         </div>
       </header>
 
@@ -244,6 +248,20 @@ export default function Home() {
                     likedByCurrentUser={post.isLikedByCurrentUser}
                     isCensored={post.isCensored}
                     onDelete={handlePostDeleted}
+                    isReadOnly={post.Author.isReadOnly}
+                    isRetweet={post.isRetweet}
+                    originalAuthorUsername={post.originalAuthorUsername}
+                    retweetedBy={post.retweetedBy}
+                    isPinned={user?.pinnedPostId === post.id}
+                    onPin={(id, isPinnedNow) => {
+                      if (user) {
+                        user.pinnedPostId = isPinnedNow ? id : undefined;
+                      }
+                      fetchPosts(true); 
+                    }}
+                    onRetweet={() => {
+                      fetchPosts(true);
+                    }}
                   />
                 </motion.div>
               ))}

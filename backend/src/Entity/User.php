@@ -91,6 +91,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\ManyToMany(targetEntity: self::class, inversedBy: 'Blocked')]
     private Collection $Blocked;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $ReadOnly = null;
+
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    private ?Post $Pinned = null;
     #[ORM\JoinColumn(name: 'Following', referencedColumnName: 'id')]
     #[ORM\InverseJoinColumn(name: 'Followed', referencedColumnName: 'id')]
 
@@ -435,5 +441,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __toString(): string
     {
         return $this->username ?? '';
+    }
+
+    #[Groups(['post:read', 'comment:read'])]
+    public function isReadOnly(): ?bool
+    {
+        return $this->ReadOnly;
+    }
+
+    public function setReadOnly(?bool $ReadOnly): static
+    {
+        $this->ReadOnly = $ReadOnly;
+
+        return $this;
+    }
+
+    public function getPinned(): ?Post
+    {
+        return $this->Pinned;
+    }
+
+    public function setPinned(?Post $Pinned): static
+    {
+        $this->Pinned = $Pinned;
+
+        return $this;
     }
 }

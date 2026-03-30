@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use App\Service\RetweetService;
+use Doctrine\ORM\EntityManagerInterface;
 
 #[Route('/api/posts', name: 'post_')]
 class PostController extends AbstractController
@@ -72,6 +74,29 @@ class PostController extends AbstractController
 
         return $this->json($post, 200, [], ['groups' => ['post:read']]);
     }
+
+    #[Route('/search', name: 'search', methods: ['GET'])]
+    public function search(Request $request, PostRepository $postRepository, PostService $postService, #[CurrentUser] ?User $user): JsonResponse
+    {
+        $query = $request->query->get('q', '');
+        $limit = $request->query->getInt('limit', 7);
+        $offset = $request->query->getInt('offset', 0);
+
+        if (empty(trim($query))) {
+            return $this->json([], 200, [], ['groups' => ['post:read']]);
+        }
+
+        $posts = $postRepository->searchFiltered($query, $limit, $offset);
+        $postService->hydratePostRelations($posts, $user);
+
+        return $this->json(
+            $posts,
+            200,
+            [],
+            ['groups' => ['post:read']]
+        );
+    }
+
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request, PostService $postService, #[CurrentUser] ?User $user): JsonResponse
     {
@@ -181,12 +206,70 @@ class PostController extends AbstractController
             return $this->json(['error' => 'Post not found.'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        if ($post->getAuthor() !== $user) {
+        if ($post->getAuthor() !== $user && !in_array('ROLE_ADMIN', $user->getRoles())) {
             return $this->json(['error' => 'Vous n\'êtes pas autorisé à supprimer ce post.'], JsonResponse::HTTP_FORBIDDEN);
         }
 
         $postRepository->remove($post, true);
 
         return $this->json(null, JsonResponse::HTTP_NO_CONTENT);
+    }
+
+    #[Route('/{id}/retweet', name: 'retweet', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function retweet(int $id, PostRepository $postRepository, RetweetService $retweetService, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (null === $user) {
+            return $this->json(['error' => 'Vous devez être connecté pour retweeter.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $post = $postRepository->find($id);
+        if ($post === null) {
+            return $this->json(['error' => 'Post not found.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        try {
+            $retweet = $retweetService->retweet($post, $user);
+            return $this->json($retweet, JsonResponse::HTTP_CREATED, [], ['groups' => ['post:read']]);
+        } catch (\InvalidArgumentException $e) {
+            return $this->json(['error' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
+        }
+    }
+
+    #[Route('/{id}/pin', name: 'pin', requirements: ['id' => '\d+'], methods: ['POST'])]
+    public function pinPost(int $id, PostRepository $postRepository, EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (null === $user) {
+            return $this->json(['error' => 'Vous devez être connecté.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $post = $postRepository->find($id);
+        if ($post === null) {
+            return $this->json(['error' => 'Post not found.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        if ($post->getAuthor() !== $user) {
+            return $this->json(['error' => 'Vous ne pouvez épingler que vos propres posts.'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        $user->setPinned($post);
+        $em->flush();
+
+        return $this->json(['message' => 'Post épinglé avec succès.'], JsonResponse::HTTP_OK);
+    }
+
+    #[Route('/{id}/pin', name: 'unpin', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function unpinPost(int $id, EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (null === $user) {
+            return $this->json(['error' => 'Vous devez être connecté.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        if ($user->getPinned() && $user->getPinned()->getId() === $id) {
+            $user->setPinned(null);
+            $em->flush();
+            return $this->json(['message' => 'Post désépinglé.'], JsonResponse::HTTP_OK);
+        }
+
+        return $this->json(['error' => 'Ce post n\'est pas épinglé.'], JsonResponse::HTTP_BAD_REQUEST);
     }
 }

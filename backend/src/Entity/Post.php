@@ -41,6 +41,7 @@ class Post
     {
         $this->LikedBy = new ArrayCollection();
         $this->Comments = new ArrayCollection();
+        $this->hashtags = new ArrayCollection();
     }
 
     #[Groups(['post:read'])]
@@ -64,12 +65,38 @@ class Post
     /**
      * @var Collection<int, Comments>
      */
-    #[ORM\OneToMany(targetEntity: Comments::class, mappedBy: 'CommentOf', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Comments::class, mappedBy: 'CommentOf', orphanRemoval: true, cascade: ['remove'])]
     private Collection $Comments;
 
     #[ORM\Column(nullable: true)]
     #[Groups(['post:read'])]
     private ?bool $isCensored = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['post:read'])]
+    private ?array $mentions = null;
+
+    #[ORM\Column(options: ['default' => false])]
+    #[Groups(['post:read'])]
+    private bool $isRetweet = false;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['post:read'])]
+    private ?string $originalAuthorUsername = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[Groups(['post:read'])]
+    private ?User $RetweetedBy = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['post:read'])]
+    private ?int $OriginalPostId = null;
+
+    /**
+     * @var Collection<int, Hashtag>
+     */
+    #[ORM\ManyToMany(targetEntity: Hashtag::class, mappedBy: 'posts')]
+    private Collection $hashtags;
 
     #[Groups(['post:read'])]
     public function getIsLikedByCurrentUser(): bool
@@ -237,6 +264,93 @@ class Post
     public function setIsCensored(?bool $isCensored): static
     {
         $this->isCensored = $isCensored;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Hashtag>
+     */
+    public function getHashtags(): Collection
+    {
+        return $this->hashtags;
+    }
+
+    public function addHashtag(Hashtag $hashtag): static
+    {
+        if (!$this->hashtags->contains($hashtag)) {
+            $this->hashtags->add($hashtag);
+            $hashtag->addPost($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHashtag(Hashtag $hashtag): static
+    {
+        if ($this->hashtags->removeElement($hashtag)) {
+            $hashtag->removePost($this);
+        }
+
+        return $this;
+    }
+
+    public function getMentions(): ?array
+    {
+        return $this->mentions;
+    }
+
+    public function setMentions(?array $mentions): static
+    {
+        $this->mentions = $mentions;
+
+        return $this;
+    }
+
+    public function isRetweet(): bool
+    {
+        return $this->isRetweet;
+    }
+
+    public function setIsRetweet(bool $isRetweet): static
+    {
+        $this->isRetweet = $isRetweet;
+
+        return $this;
+    }
+
+    public function getOriginalAuthorUsername(): ?string
+    {
+        return $this->originalAuthorUsername;
+    }
+
+    public function setOriginalAuthorUsername(?string $originalAuthorUsername): static
+    {
+        $this->originalAuthorUsername = $originalAuthorUsername;
+
+        return $this;
+    }
+
+    public function getRetweetedBy(): ?User
+    {
+        return $this->RetweetedBy;
+    }
+
+    public function setRetweetedBy(?User $RetweetedBy): static
+    {
+        $this->RetweetedBy = $RetweetedBy;
+
+        return $this;
+    }
+
+    public function getOriginalPostId(): ?int
+    {
+        return $this->OriginalPostId;
+    }
+
+    public function setOriginalPostId(?int $OriginalPostId): static
+    {
+        $this->OriginalPostId = $OriginalPostId;
 
         return $this;
     }

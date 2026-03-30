@@ -11,37 +11,45 @@ import Auth from "./Routes/Auth";
 import Home from "./Routes/Home";
 import PostingPage from "./Routes/PostingPage";
 import Profile from "./Routes/Profile";
+import SearchResults from "./Routes/SearchResults";
 import NotFound from "./Routes/NotFound";
 import "./index.css";
 
 // Configurer l'intercepteur API au démarrage
 setupAPIInterceptor();
 
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+  [
+    {
+      path: "/Auth",
+      element: <Auth />,
+    },
+    {
+      path: "/",
+      element: <Home />,
+    },
+    {
+      path: "/posting",
+      element: <PostingPage />,
+    },
+    {
+      path: "/profile",
+      element: <Profile />,
+    },
+    {
+      path: "/search",
+      element: <SearchResults />,
+    },
+    {
+      path: "*",
+      element: <NotFound />,
+    },
+  ],
   {
-    path: "/Auth",
-    element: <Auth />,
+    // Cette ligne est LA clé : elle récupère le chemin que tu passeras au build
+    basename: import.meta.env.BASE_URL,
   },
-  {
-    path: "/",
-    element: <Home />,
-  },
-  {
-    path: "/posting",
-    element: <PostingPage />,
-  },
-  {
-    path: "/profile",
-    element: <Profile />,
-  },
-  {
-    path: "*",
-    element: <NotFound />,
-  },
-], {
-  // Cette ligne est LA clé : elle récupère le chemin que tu passeras au build
-  basename: import.meta.env.BASE_URL 
-});
+);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

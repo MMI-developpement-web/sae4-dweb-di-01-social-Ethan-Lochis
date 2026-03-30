@@ -55,6 +55,13 @@ interface PostProps {
   background?: "default" | "darker";
   onDelete?: (id: number) => void;
   onUpdate?: (post: any) => void;
+  isReadOnly?: boolean;
+  isRetweet?: boolean;
+  originalAuthorUsername?: string;
+  retweetedBy?: { id: number; username: string };
+  isPinned?: boolean;
+  onPin?: (id: number, isPinnedNow: boolean) => void;
+  onRetweet?: (newPost: any) => void;
 }
 
 export default function Post({
@@ -73,6 +80,13 @@ export default function Post({
   background = "default",
   onDelete,
   onUpdate,
+  isReadOnly = false,
+  isRetweet = false,
+  originalAuthorUsername,
+  retweetedBy,
+  isPinned = false,
+  onPin,
+  onRetweet,
 }: PostProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -83,6 +97,8 @@ export default function Post({
   const [isDeleting, setIsDeleting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isRetweeting, setIsRetweeting] = useState(false);
+  const [isPinning, setIsPinning] = useState(false);
 
   // States pour les commentaires
   const [localCommentsCount, setLocalCommentsCount] = useState(commentsCount);
@@ -162,6 +178,43 @@ export default function Post({
     }
   };
 
+  const handleRetweet = async () => {
+    if (!user) {
+      navigate("/Auth", { replace: true });
+      return;
+    }
+    if (!id || isRetweeting) return;
+
+    setIsRetweeting(true);
+    try {
+      const response = await apiFetch(`/posts/${id}/retweet`, { method: "POST" });
+      onRetweet?.(response);
+    } catch (e) {
+      console.error("Erreur lors du retweet:", e);
+    } finally {
+      setIsRetweeting(false);
+    }
+  };
+
+  const handlePin = async () => {
+    if (!id || isPinning) return;
+
+    setIsPinning(true);
+    try {
+      if (isPinned) {
+        await apiFetch(`/posts/${id}/pin`, { method: "DELETE" });
+        onPin?.(id, false);
+      } else {
+        await apiFetch(`/posts/${id}/pin`, { method: "POST" });
+        onPin?.(id, true);
+      }
+    } catch (e) {
+      console.error("Erreur pin/unpin:", e);
+    } finally {
+      setIsPinning(false);
+    }
+  };
+
   const handlePostEdited = (updatedPostData: any) => {
     setText(updatedPostData.TextContent);
     setMediaUrl(updatedPostData.mediaUrl);
@@ -213,7 +266,15 @@ export default function Post({
       />
 
       {/* --- Colonne droite : Contenu --- */}
-      <div className="flex flex-col gap-1 w-full">
+      <div className="flex flex-col gap-1 w-full relative">
+        {(isRetweet || isPinned) && (
+          <div className="flex items-center gap-2 text-14 text-inactive mb-1 font-medium">
+            {isPinned && <span>📌 Post épinglé</span>}
+            {isPinned && isRetweet && <span>•</span>}
+            {isRetweet && <span>🔁 Retweeté par @{retweetedBy?.username}</span>}
+          </div>
+        )}
+
         {/* Header : pseudo + timestamp */}
         <div>
           <div className="flex items-baseline justify-between gap-2">
@@ -233,8 +294,30 @@ export default function Post({
           className={`text-16 leading-relaxed whitespace-pre-wrap ${isCensored ? "text-red-400 italic" : "text-fg"}`}
         >
           {isCensored && <span className="mr-1">⚠️</span>}
-          {text}
+          {text.split(/(#\w+)/g).map((part, index) => {
+            if (part.match(/^#\w+/)) {
+              return (
+                <span
+                  key={index}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(`/search?q=${encodeURIComponent(part)}`);
+                  }}
+                  className="text-primary hover:underline cursor-pointer font-medium"
+                >
+                  {part}
+                </span>
+              );
+            }
+            return part;
+          })}
         </p>
+        {isRetweet && originalAuthorUsername && (
+          <p className="text-14 text-inactive mt-1">
+            Créé à l'origine par @{originalAuthorUsername}
+          </p>
+        )}
 
         {/* Media si présent */}
         {mediaUrl && (
@@ -264,17 +347,39 @@ export default function Post({
               defaultCount={likesCount}
               onClick={handleLike}
             />
+            {/* Comment button */}
+            {!isReadOnly && !user?.isReadOnly && (
+              <button
+                onClick={toggleComments}
+                className="flex items-center gap-1.5 text-inactive hover:text-primary transition-colors focus:outline-none"
+                aria-label="Afficher les commentaires"
+              >
+                <IconComment className="size-5" />
+                <span className="text-14 font-medium">{localCommentsCount}</span>
+              </button>
+            )}
+
+            {/* Retweet button */}
             <button
-              onClick={toggleComments}
-              className="flex items-center gap-1.5 text-inactive hover:text-primary transition-colors focus:outline-none"
-              aria-label="Afficher les commentaires"
+              onClick={handleRetweet}
+              disabled={isRetweeting || isRetweet || (user?.username === username)}
+              className="flex items-center gap-1.5 text-inactive hover:text-green-500 transition-colors focus:outline-none disabled:opacity-50"
+              aria-label="Retweeter"
             >
-              <IconComment className="size-5" />
-              <span className="text-14 font-medium">{localCommentsCount}</span>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 2l4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="M7 22l-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path></svg>
             </button>
 
             {user?.username === username && (
-              <div className="ml-auto flex gap-3">
+              <div className="ml-auto flex gap-3 items-center">
+                {!isReply && (
+                  <button
+                    onClick={handlePin}
+                    disabled={isPinning}
+                    className={`text-14 transition-colors disabled:opacity-50 ${isPinned ? "text-secondary" : "text-inactive hover:text-secondary"}`}
+                  >
+                    {isPinned ? "Désépingler" : "Épingler"}
+                  </button>
+                )}
                 <button
                   onClick={() => setIsEditing(true)}
                   disabled={isDeleting}
@@ -317,13 +422,18 @@ export default function Post({
             exit={{ opacity: 0, height: 0 }}
             className="w-full flex col-span-2 col-start-1 flex-col gap-4 mt-4 overflow-hidden"
           >
-            {user && id && (
+            {user && id && !isReadOnly && (
               <div className="pl-10 w-full mb-2">
                 <Posting
                   variant="comment"
                   postId={id}
                   onPostCreated={handleCommentCreated}
                 />
+              </div>
+            )}
+            {user && id && isReadOnly && (
+              <div className="pl-10 w-full mb-2 text-14 text-red-400 italic">
+                Ce profil est en lecture seule. Les commentaires sont désactivés.
               </div>
             )}
 

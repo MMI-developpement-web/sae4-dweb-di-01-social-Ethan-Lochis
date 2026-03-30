@@ -55,7 +55,14 @@ export default function Profile() {
 
       // Fetch user posts
       const postsData = await apiFetch<PostType[]>(`/posts/user/${user.id}`);
-      setPosts(postsData);
+      
+      const sortedPosts = [...postsData].sort((a, b) => {
+        if (a.id === user.pinnedPostId) return -1;
+        if (b.id === user.pinnedPostId) return 1;
+        return 0;
+      });
+      
+      setPosts(sortedPosts);
     } catch (err: any) {
       setError(err.message || "Erreur lors du chargement");
     } finally {
@@ -143,6 +150,30 @@ export default function Profile() {
                     isCensored={post.isCensored}
                     background="darker"
                     onDelete={handlePostDeleted}
+                    isReadOnly={post.Author.isReadOnly}
+                    isRetweet={post.isRetweet}
+                    originalAuthorUsername={post.originalAuthorUsername}
+                    retweetedBy={post.retweetedBy}
+                    isPinned={user?.pinnedPostId === post.id}
+                    onPin={(id, isPinnedNow) => {
+                      if (user) {
+                        user.pinnedPostId = isPinnedNow ? id : undefined;
+                      }
+                      // Forcer un rechargement pour ré-appliquer le tri
+                      setLoading(true);
+                      setTimeout(() => setPosts(prev => {
+                        const newPosts = [...prev].sort((a, b) => {
+                          if (a.id === user?.pinnedPostId) return -1;
+                          if (b.id === user?.pinnedPostId) return 1;
+                          return 0;
+                        });
+                        setLoading(false);
+                        return newPosts;
+                      }), 100);
+                    }}
+                    onRetweet={(newPost) => {
+                      setPosts(prev => [newPost, ...prev]);
+                    }}
                   />
                 </motion.div>
               ))}

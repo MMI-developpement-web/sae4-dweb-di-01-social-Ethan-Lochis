@@ -50,8 +50,13 @@ class CommentsController extends AbstractController
             return $this->json(['error' => 'Le contenu du commentaire ne peut pas être vide.'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        // Vérifier si l'auteur du post a bloqué l'utilisateur courant
+        // Vérifier si le profil de l'auteur est en lecture seule (US 2.3)
         $postAuthor = $post->getAuthor();
+        if ($postAuthor && $postAuthor->isReadOnly()) {
+            return $this->json(['error' => 'Ce profil est en lecture seule. Les commentaires sont désactivés.'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        // Vérifier si l'auteur du post a bloqué l'utilisateur courant
         if ($postAuthor && $postAuthor->getBlocked()->contains($user)) {
             return $this->json(['error' => 'Vous ne pouvez pas interagir avec ce contenu.'], JsonResponse::HTTP_FORBIDDEN);
         }

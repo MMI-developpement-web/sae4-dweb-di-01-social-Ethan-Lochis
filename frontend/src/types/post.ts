@@ -6,10 +6,18 @@ export interface PostType {
   Author: {
     id: number;
     username: string;
+    profilePicture?: string;
     isFollowedByCurrentUser?: boolean;
+    isReadOnly?: boolean;
   };
   likesCount?: number;
   commentsCount?: number;
   isLikedByCurrentUser?: boolean;
   isCensored?: boolean;
+  isRetweet?: boolean;
+  originalAuthorUsername?: string;
+  retweetedBy?: {
+    id: number;
+    username: string;
+  };
 }

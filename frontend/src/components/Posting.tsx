@@ -30,6 +30,7 @@ export default function Posting({
   onCancelEdit
 }: PostingProps) {
   const [content, setContent] = useState(initialContent);
+  const [hashtagsInput, setHashtagsInput] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
   const initialPreview = initialMediaUrl ? getMediaUrl(initialMediaUrl) : null;
@@ -104,10 +105,21 @@ export default function Posting({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() && !hashtagsInput.trim()) return;
 
     setError(null);
-    const { data, error: submitError } = await submitAction(content, selectedFile, mediaRemoved);
+    let finalContent = content.trim();
+
+    if (hashtagsInput.trim()) {
+      const formattedHashtags = hashtagsInput
+        .split(/[,\s]+/)
+        .filter(tag => tag.trim() !== "")
+        .map(tag => tag.startsWith("#") ? tag : `#${tag}`)
+        .join(" ");
+      finalContent = finalContent ? `${finalContent}\n\n${formattedHashtags}` : formattedHashtags;
+    }
+
+    const { data, error: submitError } = await submitAction(finalContent, selectedFile, mediaRemoved);
 
     if (submitError) {
       setError(submitError);
@@ -116,6 +128,7 @@ export default function Posting({
 
     if (!isEditing) {
       setContent("");
+      setHashtagsInput("");
       setSelectedFile(null);
       setPreview(null);
       setPreviewType(null);
@@ -153,8 +166,17 @@ export default function Posting({
         value={content}
         onChange={handleContentChange}
         placeholder={variant === "comment" ? "Write a comment..." : "What's on your mind?"}
-        rows={isEditing ? 4 : (variant === "comment" ? 2 : 8)}
+        rows={isEditing ? 4 : (variant === "comment" ? 2 : 5)}
         className="shrink w-full resize-none rounded-lg border border-fg p-3 text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-gray-400"
+      />
+
+      {/* Input optionnel pour les hashtags */}
+      <input
+        type="text"
+        value={hashtagsInput}
+        onChange={(e) => setHashtagsInput(e.target.value)}
+        placeholder="Ajouter des hashtags (ex: react, vite)"
+        className="w-full rounded-lg border border-fg p-2 text-sm outline-none focus:ring-2 focus:ring-primary text-fg bg-bg-lighter placeholder:text-gray-400"
       />
 
       {/* Aperçu ou Input file si non comment */}

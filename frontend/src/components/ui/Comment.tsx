@@ -17,7 +17,7 @@ export default function Comment({ text, authorUsername, authorAvatarUrl, created
       className="flex gap-3 pt-3 pb-2 border-l-2 border-bg-lighter ml-5 pl-4 max-w-full overflow-hidden"
     >
       <img
-        src={authorAvatarUrl ? getMediaUrl(authorAvatarUrl) : `https://ui-avatars.com/api/?name=${authorUsername}&background=random`}
+        src={authorAvatarUrl ? (getMediaUrl(authorAvatarUrl) || undefined) : `https://ui-avatars.com/api/?name=${authorUsername}&background=random`}
         alt={`${authorUsername}'s avatar`}
         className="size-8 rounded-full object-cover shrink-0"
       />

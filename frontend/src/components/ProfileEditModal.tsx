@@ -17,6 +17,7 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
   
   const [bio, setBio] = useState("");
   const [location, setLocation] = useState("");
+  const [isReadOnly, setIsReadOnly] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -28,6 +29,7 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
     if (isOpen && user) {
       setBio(user.bio || "");
       setLocation(user.location || "");
+      setIsReadOnly(user.isReadOnly || false);
       setPreview(user.profilePicture ? getMediaUrl(user.profilePicture) : null);
       setSelectedFile(null);
       setError(null);
@@ -84,6 +86,7 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
       const formData = new FormData();
       formData.append("bio", bio);
       formData.append("location", location);
+      formData.append("isReadOnly", isReadOnly ? "true" : "false");
       if (selectedFile) {
         formData.append("profilePicture", selectedFile);
       }
@@ -189,6 +192,21 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
               className="w-full px-3 py-2 rounded-md border border-gray-600 bg-bg text-fg text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
               disabled={loading}
             />
+          </div>
+
+          {/* ReadOnly */}
+          <div className="flex items-center gap-2 mt-2">
+            <input
+              id="isReadOnly"
+              type="checkbox"
+              checked={isReadOnly}
+              onChange={(e) => setIsReadOnly(e.target.checked)}
+              className="w-4 h-4 text-primary bg-bg border-gray-600 rounded focus:ring-primary focus:ring-2"
+              disabled={loading}
+            />
+            <label htmlFor="isReadOnly" className="text-sm font-medium text-fg cursor-pointer">
+              Mode Lecture Seule
+            </label>
           </div>
 
           {error && (

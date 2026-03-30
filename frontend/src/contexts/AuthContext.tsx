@@ -10,6 +10,8 @@ interface User {
   profilePicture: string | null;
   bio?: string | null;
   location?: string | null;
+  pinnedPostId?: number | null;
+  isReadOnly?: boolean;
 }
 
 interface AuthContextType {

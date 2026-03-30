@@ -6,6 +6,7 @@ use App\Dto\CreatePostPayload;
 use App\Entity\Post;
 use App\Entity\User;
 use App\Repository\PostRepository;
+use App\Service\HashtagService;
 use InvalidArgumentException;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
@@ -13,7 +14,8 @@ class PostService
 {
     public function __construct(
         private PostRepository $postRepository,
-        private string $projectDir
+        private string $projectDir,
+        private HashtagService $hashtagService
     ) {
     }
 
@@ -30,6 +32,15 @@ class PostService
             $mediaUrl = $this->handleMediaUpload($payload->getMedia());
             $post->setMediaUrl($mediaUrl);
         }
+
+        // Extrait les mentions du texte et les sauvegarde
+        $mentions = $this->hashtagService->extractMentions($payload->getTextContent());
+        if (!empty($mentions)) {
+            $post->setMentions($mentions);
+        }
+
+        // Parse et associe les hashtags au post
+        $this->hashtagService->processPostContent($post);
 
         // Délégation de la sauvegarde au Repository
         $this->postRepository->save($post, true);
@@ -49,6 +60,13 @@ class PostService
             $mediaUrl = $this->handleMediaUpload($payload->getMedia());
             $post->setMediaUrl($mediaUrl);
         }
+
+        // Extrait les mentions du texte et les met à jour
+        $mentions = $this->hashtagService->extractMentions($payload->getTextContent());
+        $post->setMentions(!empty($mentions) ? $mentions : null);
+
+        // Parse et met à jour les hashtags
+        $this->hashtagService->processPostContent($post);
 
         $this->postRepository->save($post, true);
 

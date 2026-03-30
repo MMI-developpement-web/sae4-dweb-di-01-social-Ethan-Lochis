@@ -23,6 +23,7 @@ class UserCrudController extends AbstractCrudController
             EmailField::new('email', 'Adresse e-mail'),
             BooleanField::new('admin', 'Administrateur'),
             BooleanField::new('isBlocked', 'Compte bloqué'),
+            BooleanField::new('ReadOnly', 'Lecture Seule'),
         ];
     }
 }

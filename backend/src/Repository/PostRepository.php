@@ -77,4 +77,37 @@ class PostRepository extends ServiceEntityRepository
     {
         return $this->findBy(['Author' => $authorId], ['id' => 'DESC']);
     }
+
+    /**
+     * @return Post[]
+     */
+    public function searchFiltered(string $query, ?int $limit = null, ?int $offset = null): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->orderBy('p.id', 'DESC');
+
+        if (str_starts_with($query, '#')) {
+            $hashtagName = mb_strtolower(substr($query, 1));
+            $qb->join('p.hashtags', 'h')
+               ->andWhere('h.name = :hashtag')
+               ->setParameter('hashtag', $hashtagName);
+        } elseif (str_starts_with($query, '@')) {
+            $username = substr($query, 1);
+            $qb->join('p.Author', 'a')
+               ->andWhere('a.username LIKE :username')
+               ->setParameter('username', '%' . $username . '%');
+        } else {
+            $qb->andWhere('p.TextContent LIKE :query')
+               ->setParameter('query', '%' . $query . '%');
+        }
+
+        if ($limit !== null) {
+            $qb->setMaxResults($limit);
+        }
+        if ($offset !== null) {
+            $qb->setFirstResult($offset);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

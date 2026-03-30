@@ -181,12 +181,16 @@ class UserController extends AbstractController
         $bio = $request->request->get('bio');
         $location = $request->request->get('location');
         $uploadedFile = $request->files->get('profilePicture');
+        $isReadOnly = $request->request->get('isReadOnly');
 
         if ($bio !== null) {
             $currentUser->setBio($bio);
         }
         if ($location !== null) {
             $currentUser->setLocation($location);
+        }
+        if ($isReadOnly !== null) {
+            $currentUser->setReadOnly(filter_var($isReadOnly, FILTER_VALIDATE_BOOLEAN));
         }
         if ($uploadedFile !== null) {
             try {
@@ -212,6 +216,8 @@ class UserController extends AbstractController
             'bio' => $user->getBio(),
             'location' => $user->getLocation(),
             'roles' => $user->getRoles(),
+            'pinnedPostId' => $user->getPinned()?->getId(),
+            'isReadOnly' => $user->isReadOnly(),
         ];
     }
 }
