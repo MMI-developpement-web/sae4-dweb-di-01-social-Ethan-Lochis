@@ -76,7 +76,7 @@ export default function PostMenu({ userId, username }: PostMenuProps) {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-1 rounded-full hover:bg-white/10 text-inactive hover:text-fg transition-colors"
+        className="p-1 rounded-full hover:bg-white/10 text-primary hover:text-primary-hover transition-colors"
         aria-label={`Actions pour ${username}`}
       >
         <IconMore className="size-5" />

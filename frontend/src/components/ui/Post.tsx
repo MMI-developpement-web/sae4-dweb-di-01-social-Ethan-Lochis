@@ -182,6 +182,7 @@ export default function Post({
         />
         <div className="flex flex-col gap-1 w-full relative">
           <Posting
+            variant={isReply ? "comment" : "post"}
             isEditing={true}
             editPostId={id!}
             initialContent={text}

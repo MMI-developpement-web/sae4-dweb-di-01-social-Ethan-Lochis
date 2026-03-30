@@ -140,12 +140,14 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
           <div className="flex flex-col gap-2">
             <Label htmlFor="profilePicture">Photo de profil</Label>
             {preview && (
-              <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-200">
-                <img src={preview} alt="Aperçu" className="w-full h-full object-cover" />
+              <div className="relative inline-block w-24 h-24">
+                <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-200">
+                  <img src={preview} alt="Aperçu" className="w-full h-full object-cover" />
+                </div>
                 <button
                   type="button"
                   onClick={handleRemoveProfilePicture}
-                  className="absolute top-0 right-0 bg-red-500 p-1 rounded-full text-white hover:bg-red-600"
+                  className="absolute top-0 right-0 bg-red-500 p-1 rounded-full text-white hover:bg-red-600 transition-colors shadow-md"
                   aria-label="Supprimer la photo"
                 >
                   <IconClose className="size-4" />
@@ -200,7 +202,7 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
           <div className="flex gap-4 justify-end mt-4">
             <Button
               type="button"
-              variant="outline"
+              variant="danger"
               onClick={onClose}
               disabled={loading}
             >
