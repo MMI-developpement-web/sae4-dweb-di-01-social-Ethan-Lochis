@@ -77,7 +77,7 @@ export default function Like({
       {/* animation compteur */}
       {count > 0 && (
         <motion.span
-          key={count}
+          key="like-count"
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-sm text-gray-500"

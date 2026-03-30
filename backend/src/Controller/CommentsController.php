@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -70,5 +71,34 @@ class CommentsController extends AbstractController
         $em->flush();
 
         return $this->json($comment, JsonResponse::HTTP_CREATED, [], ['groups' => ['comment:read']]);
+    }
+
+    #[Route('/comments/{id}', name: 'post_comments_update', methods: ['POST'])]
+    public function updateComment(int $id, Request $request, CommentsRepository $commentsRepository, EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (null === $user) {
+            return $this->json(['error' => 'Vous devez être connecté pour modifier un commentaire.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $comment = $commentsRepository->find($id);
+        if (!$comment) {
+            return $this->json(['error' => 'Commentaire non trouvé.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        if ($comment->getAuthor() !== $user) {
+            return $this->json(['error' => 'Vous n\'êtes pas autorisé à modifier ce commentaire.'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $content = $data['TextContent'] ?? null;
+
+        if (!$content || empty(trim($content))) {
+            return $this->json(['error' => 'Le contenu du commentaire ne peut pas être vide.'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $comment->setTextContent(trim($content));
+        $em->flush();
+
+        return $this->json($comment, JsonResponse::HTTP_OK, [], ['groups' => ['comment:read']]);
     }
 }

@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import Publisher from "./ui/Publisher";
 import Button from "./ui/Button";
 import { useAuth } from "../contexts/AuthContext";
-import { IconImage, IconClose } from "./ui/Icons";
+import { IconImage, IconClose, IconCheckComments, IconXComments } from "./ui/Icons";
 import { cn, getMediaUrl } from "../lib/utils";
 import { usePostForm } from "../hooks/usePostForm";
 
@@ -217,25 +217,80 @@ export default function Posting({
         )}
 
         <div className="flex gap-2">
-          {isEditing && (
-            <Button
-              type="button"
-              variant="secondary"
-              size="md"
-              disabled={isSubmitting}
-              onClick={onCancelEdit}
-            >
-              Annuler
-            </Button>
+          {/* Icônes pour commentaires en édition (mobiles uniquement) */}
+          {isEditing && variant === "comment" && (
+            <>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={onCancelEdit}
+                className="flex md:hidden p-2 rounded-full text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                aria-label="Annuler l'édition"
+                title="Annuler"
+              >
+                <IconXComments className="size-5" />
+              </button>
+              <button
+                type="submit"
+                disabled={content.trim().length === 0 || isSubmitting}
+                className="flex md:hidden p-2 rounded-full text-green-500 hover:bg-green-500/10 transition-colors disabled:opacity-50"
+                aria-label="Enregistrer le commentaire"
+                title="Enregistrer"
+              >
+                <IconCheckComments className="size-5" />
+              </button>
+            </>
           )}
-          <Button
-            type="submit"
-            variant="primary"
-            size="md"
-            disabled={content.trim().length === 0 || isSubmitting}
-          >
-            {isSubmitting ? (isEditing ? "Modification..." : "Publication...") : (isEditing ? "Enregistrer" : "Publier")}
-          </Button>
+
+          {/* Boutons texte pour commentaires en édition (desktop) */}
+          {isEditing && variant === "comment" && (
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                size="md"
+                disabled={isSubmitting}
+                onClick={onCancelEdit}
+                className="hidden md:inline-flex"
+              >
+                Annuler
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                disabled={content.trim().length === 0 || isSubmitting}
+                className="hidden md:inline-flex"
+              >
+                {isSubmitting ? "Modification..." : "Enregistrer"}
+              </Button>
+            </>
+          )}
+
+          {/* Boutons standards (posts et autres cas) */}
+          {!(isEditing && variant === "comment") && (
+            <>
+              {isEditing && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="md"
+                  disabled={isSubmitting}
+                  onClick={onCancelEdit}
+                >
+                  Annuler
+                </Button>
+              )}
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                disabled={content.trim().length === 0 || isSubmitting}
+              >
+                {isSubmitting ? (isEditing ? "Modification..." : "Publication...") : (isEditing ? "Enregistrer" : "Publier")}
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </form>
