@@ -10,11 +10,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CorsSubscriber implements EventSubscriberInterface
 {
-    private string $allowedOrigin;
+    private string $allowedOriginPattern;
 
     public function __construct()
     {
-        $this->allowedOrigin = $_ENV['CORS_ALLOW_ORIGIN'] ?? 'http://localhost:5173';
+        $this->allowedOriginPattern = $_ENV['CORS_ALLOW_ORIGIN'] ?? 'http://localhost:5173';
     }
 
     public static function getSubscribedEvents(): array
@@ -46,10 +46,33 @@ class CorsSubscriber implements EventSubscriberInterface
             return;
         }
 
+        $request = $event->getRequest();
         $response = $event->getResponse();
-        $response->headers->set('Access-Control-Allow-Origin', $this->allowedOrigin);
-        $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-        $response->headers->set('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
-        $response->headers->set('Access-Control-Allow-Credentials', 'true');
+        
+        // Déterminer l'origin approprié
+        $origin = $request->headers->get('Origin');
+        $allowedOrigin = $this->isOriginAllowed($origin) ? $origin : null;
+        
+        if ($allowedOrigin) {
+            $response->headers->set('Access-Control-Allow-Origin', $allowedOrigin);
+            $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+            $response->headers->set('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
+            $response->headers->set('Access-Control-Allow-Credentials', 'true');
+        }
+    }
+
+    private function isOriginAllowed(?string $origin): bool
+    {
+        if (!$origin) {
+            return false;
+        }
+
+        // Si c'est une regex pattern, utiliser preg_match
+        if (strpos($this->allowedOriginPattern, '^') === 0 || strpos($this->allowedOriginPattern, '*') !== false) {
+            return (bool) preg_match('#' . $this->allowedOriginPattern . '#', $origin);
+        }
+
+        // Sinon comparaison directe
+        return $origin === $this->allowedOriginPattern;
     }
 }

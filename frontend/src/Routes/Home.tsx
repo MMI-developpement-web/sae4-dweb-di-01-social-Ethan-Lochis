@@ -16,7 +16,6 @@ export default function Home() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [feed, setFeed] = useState<"foryou" | "following">("foryou");
   // 0 = Désactivé. Sinon, valeur en millisecondes (ex: 30000 = 30s)
@@ -37,36 +36,35 @@ export default function Home() {
 
   const fetchPosts = useCallback(
     async (reset = false) => {
-      if (!reset && (loadingMore || loading || !hasMore)) return;
-
-      // In order to avoid stale closures with offset, we'll use a functional update or refs.
-      // However, with useCallback and correct dependencies, this works.
-      const currentOffset = reset ? 0 : offset;
-
-      if (reset) {
-        if (posts.length === 0) setLoading(true);
-        setHasMore(true);
-      } else {
-        setLoadingMore(true);
-      }
-
       try {
+        setLoading((prev) => reset ? true : prev);
+        setLoadingMore((prev) => reset ? false : true);
+        
+        // Use posts.length only if not resetting
+        const currentOffset = reset ? 0 : posts.length;
+        
         const data = await apiFetch<PostType[]>(
           `/posts?limit=${limit}&offset=${currentOffset}&feed=${feed}`,
         );
         
         setHasMore(data.length >= limit);
         
-        setPosts((prev) => (reset ? data : [...prev, ...data]));
-        setOffset(currentOffset + limit);
+        // Filter out posts that already exist to prevent duplicate key warnings
+        setPosts((prev) => {
+          if (reset) return data;
+          
+          const existingIds = new Set(prev.map(p => p.id));
+          const newPosts = data.filter(p => !existingIds.has(p.id));
+          return [...prev, ...newPosts];
+        });
       } catch (err: any) {
         setError(err.message || "Erreur lors du chargement des posts");
       } finally {
-        if (reset) setLoading(false);
+        setLoading(false);
         setLoadingMore(false);
       }
     },
-    [offset, hasMore, loadingMore, loading, feed, posts.length],
+    [feed, posts.length],
   );
 
   useEffect(() => {
@@ -222,7 +220,7 @@ export default function Home() {
             {!error &&
               posts.map((post, index) => (
                 <motion.div
-                  key={post.id}
+                  key={`${post.id}-${index}`}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ 

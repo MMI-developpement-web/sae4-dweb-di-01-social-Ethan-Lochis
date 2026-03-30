@@ -101,7 +101,7 @@ export default function ProfileHeader({
         {/* --- STAT: POSTS --- */}
         <div className="flex flex-col items-center flex-1">
           <motion.span 
-            key={postCount} 
+            key="posts" 
             initial={{ opacity: 0, y: -10 }} 
             animate={{ opacity: 1, y: 0 }} 
             className="text-xl font-bold text-fg"
@@ -114,7 +114,7 @@ export default function ProfileHeader({
         {/* --- STAT: ABONNEMENTS --- */}
         <div className="flex flex-col items-center flex-1 border-x border-gray-200">
           <motion.span 
-            key={followingCount} 
+            key="following" 
             initial={{ opacity: 0, y: -10 }} 
             animate={{ opacity: 1, y: 0 }} 
             className="text-xl font-bold text-fg"
@@ -127,7 +127,7 @@ export default function ProfileHeader({
         {/* --- STAT: ABONNÉS --- */}
         <div className="flex flex-col items-center flex-1">
           <motion.span 
-            key={followerCount} 
+            key="followers" 
             initial={{ opacity: 0, y: -10 }} 
             animate={{ opacity: 1, y: 0 }} 
             className="text-xl font-bold text-fg"

@@ -23,6 +23,7 @@ class PostService
         $post->setTextContent($payload->getTextContent());
         $post->setCreatedAt(new \DateTimeImmutable());
         $post->setAuthor($author);
+        $post->setIsCensored(false); // Par défaut, le post n'est pas censuré
 
         // Gérer l'upload de fichier si présent
         if ($payload->getMedia() !== null) {
