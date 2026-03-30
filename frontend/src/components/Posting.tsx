@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import Publisher from "./ui/Publisher";
 import Button from "./ui/Button";
 import { useAuth } from "../contexts/AuthContext";
-import { IconImage, IconClose, IconCheckComments, IconXComments } from "./ui/Icons";
+import { IconImage, IconClose } from "./ui/Icons";
 import { cn, getMediaUrl } from "../lib/utils";
 import { usePostForm } from "../hooks/usePostForm";
 
@@ -154,7 +154,7 @@ export default function Posting({
         onChange={handleContentChange}
         placeholder={variant === "comment" ? "Write a comment..." : "What's on your mind?"}
         rows={isEditing ? 4 : (variant === "comment" ? 2 : 8)}
-        className="shrink w-full resize-none rounded-lg border border-fg p-3 text-sm text-fg outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-gray-400"
+        className="shrink w-full resize-none rounded-lg border border-fg p-3 text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-gray-400"
       />
 
       {/* Aperçu ou Input file si non comment */}
@@ -217,80 +217,25 @@ export default function Posting({
         )}
 
         <div className="flex gap-2">
-          {/* Icônes pour commentaires en édition (mobiles uniquement) */}
-          {isEditing && variant === "comment" && (
-            <>
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={onCancelEdit}
-                className="flex md:hidden p-2 rounded-full text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50"
-                aria-label="Annuler l'édition"
-                title="Annuler"
-              >
-                <IconXComments className="size-5" />
-              </button>
-              <button
-                type="submit"
-                disabled={content.trim().length === 0 || isSubmitting}
-                className="flex md:hidden p-2 rounded-full text-green-500 hover:bg-green-500/10 transition-colors disabled:opacity-50"
-                aria-label="Enregistrer le commentaire"
-                title="Enregistrer"
-              >
-                <IconCheckComments className="size-5" />
-              </button>
-            </>
+          {isEditing && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="md"
+              disabled={isSubmitting}
+              onClick={onCancelEdit}
+            >
+              Annuler
+            </Button>
           )}
-
-          {/* Boutons texte pour commentaires en édition (desktop) */}
-          {isEditing && variant === "comment" && (
-            <>
-              <Button
-                type="button"
-                variant="secondary"
-                size="md"
-                disabled={isSubmitting}
-                onClick={onCancelEdit}
-                className="hidden md:inline-flex"
-              >
-                Annuler
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                size="md"
-                disabled={content.trim().length === 0 || isSubmitting}
-                className="hidden md:inline-flex"
-              >
-                {isSubmitting ? "Modification..." : "Enregistrer"}
-              </Button>
-            </>
-          )}
-
-          {/* Boutons standards (posts et autres cas) */}
-          {!(isEditing && variant === "comment") && (
-            <>
-              {isEditing && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="md"
-                  disabled={isSubmitting}
-                  onClick={onCancelEdit}
-                >
-                  Annuler
-                </Button>
-              )}
-              <Button
-                type="submit"
-                variant="primary"
-                size="md"
-                disabled={content.trim().length === 0 || isSubmitting}
-              >
-                {isSubmitting ? (isEditing ? "Modification..." : "Publication...") : (isEditing ? "Enregistrer" : "Publier")}
-              </Button>
-            </>
-          )}
+          <Button
+            type="submit"
+            variant="primary"
+            size="md"
+            disabled={content.trim().length === 0 || isSubmitting}
+          >
+            {isSubmitting ? (isEditing ? "Modification..." : "Publication...") : (isEditing ? "Enregistrer" : "Publier")}
+          </Button>
         </div>
       </div>
     </form>

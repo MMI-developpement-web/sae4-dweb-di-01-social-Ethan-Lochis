@@ -18,18 +18,11 @@ export function usePostForm({ variant, postId, editPostId, isEditing }: UsePostF
 
     try {
       let data;
-      if (variant === "comment") {
-        if (isEditing && editPostId) {
-          data = await apiFetch(`/posts/comments/${editPostId}`, {
-            method: "POST",
-            body: JSON.stringify({ TextContent: content }),
-          });
-        } else if (postId) {
-          data = await apiFetch(`/posts/${postId}/comments`, {
-            method: "POST",
-            body: JSON.stringify({ TextContent: content }),
-          });
-        }
+      if (variant === "comment" && postId) {
+        data = await apiFetch(`/posts/${postId}/comments`, {
+          method: "POST",
+          body: JSON.stringify({ TextContent: content }),
+        });
       } else {
         const formData = new FormData();
         formData.append("textContent", content);
