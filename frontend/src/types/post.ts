@@ -16,8 +16,9 @@ export interface PostType {
   isCensored?: boolean;
   isRetweet?: boolean;
   originalAuthorUsername?: string;
-  retweetedBy?: {
+  RetweetedBy?: {
     id: number;
     username: string;
+    profilePicture?: string;
   };
 }

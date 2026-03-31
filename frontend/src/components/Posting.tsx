@@ -18,6 +18,25 @@ interface PostingProps {
   onCancelEdit?: () => void;
 }
 
+function extractContentAndTags(text: string) {
+  if (!text) return { textContent: "", extractedTags: "" };
+
+  const tagsRegex = /^([#@]\S+\s*)+$/;
+  if (tagsRegex.test(text)) {
+    return { textContent: "", extractedTags: text.trim().replace(/\s+/g, " ") };
+  }
+
+  const match = text.match(/^(.*?)(?:\r?\n\r?\n)((?:[#@]\S+\s*)+)$/s);
+  if (match) {
+    return {
+      textContent: match[1],
+      extractedTags: match[2].trim().replace(/\s+/g, " "),
+    };
+  }
+
+  return { textContent: text, extractedTags: "" };
+}
+
 export default function Posting({ 
   onPostCreated,
   isEditing = false,
@@ -29,8 +48,9 @@ export default function Posting({
   onPostEdited,
   onCancelEdit
 }: PostingProps) {
-  const [content, setContent] = useState(initialContent);
-  const [hashtagsInput, setHashtagsInput] = useState("");
+  const { textContent: parsedContent, extractedTags } = extractContentAndTags(initialContent);
+  const [content, setContent] = useState(parsedContent);
+  const [hashtagsInput, setHashtagsInput] = useState(extractedTags);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
   const initialPreview = initialMediaUrl ? getMediaUrl(initialMediaUrl) : null;
@@ -114,7 +134,7 @@ export default function Posting({
       const formattedHashtags = hashtagsInput
         .split(/[,\s]+/)
         .filter(tag => tag.trim() !== "")
-        .map(tag => tag.startsWith("#") ? tag : `#${tag}`)
+        .map(tag => (tag.startsWith("#") || tag.startsWith("@")) ? tag : `#${tag}`)
         .join(" ");
       finalContent = finalContent ? `${finalContent}\n\n${formattedHashtags}` : formattedHashtags;
     }
@@ -175,7 +195,7 @@ export default function Posting({
         type="text"
         value={hashtagsInput}
         onChange={(e) => setHashtagsInput(e.target.value)}
-        placeholder="Ajouter des hashtags (ex: react, vite)"
+        placeholder="Ajouter des hashtags ou @mentions (ex: react, @user)"
         className="w-full rounded-lg border border-fg p-2 text-sm outline-none focus:ring-2 focus:ring-primary text-fg bg-bg-lighter placeholder:text-gray-400"
       />
 

@@ -137,24 +137,9 @@ export default function Profile() {
                   }}
                 >
                   <Post
-                    id={post.id}
-                    authorId={post.Author?.id}
-                    username={post.Author.username}
-                    avatarUrl={post.Author.profilePicture}
-                    text={post.TextContent}
-                    mediaUrl={post.mediaUrl}
-                    timestamp={new Date(post.CreatedAt).toLocaleDateString()}
-                    likesCount={post.likesCount}
-                    commentsCount={post.commentsCount}
-                    likedByCurrentUser={post.isLikedByCurrentUser}
-                    isCensored={post.isCensored}
+                    post={post}
                     background="darker"
                     onDelete={handlePostDeleted}
-                    isReadOnly={post.Author.isReadOnly}
-                    isRetweet={post.isRetweet}
-                    originalAuthorUsername={post.originalAuthorUsername}
-                    retweetedBy={post.retweetedBy}
-                    isPinned={user?.pinnedPostId === post.id}
                     onPin={(id, isPinnedNow) => {
                       if (user) {
                         user.pinnedPostId = isPinnedNow ? id : undefined;
@@ -173,6 +158,9 @@ export default function Profile() {
                     }}
                     onRetweet={(newPost) => {
                       setPosts(prev => [newPost, ...prev]);
+                    }}
+                    onUpdate={(updatedPost) => {
+                      setPosts(prev => prev.map(p => p.id === updatedPost.id ? { ...p, ...updatedPost } : p));
                     }}
                   />
                 </motion.div>

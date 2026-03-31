@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Navbar from "../components/ui/Navbar";
 import Posting from "../components/Posting";
 import Post from "../components/ui/Post";
@@ -27,6 +27,8 @@ export default function Home() {
   });
   const { user } = useAuth();
   const limit = 7;
+  const isFetchingRef = useRef(false);
+  const hasMoreRef = useRef(true);
 
   // Quand l'utilisateur change la valeur, on sauvegarde dans le localStorage
   const handleIntervalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -37,7 +39,11 @@ export default function Home() {
 
   const fetchPosts = useCallback(
     async (reset = false) => {
+      if (isFetchingRef.current) return;
+      if (!hasMoreRef.current && !reset) return;
+      
       try {
+        isFetchingRef.current = true;
         setLoading(() => reset ? true : false);
         setLoadingMore(() => reset ? false : true);
         
@@ -48,7 +54,9 @@ export default function Home() {
           `/posts?limit=${limit}&offset=${currentOffset}&feed=${feed}`,
         );
         
-        setHasMore(data.length >= limit);
+        const more = data.length >= limit;
+        setHasMore(more);
+        hasMoreRef.current = more;
         
         // Filter out posts that already exist to prevent duplicate key warnings
         setPosts((prev) => {
@@ -63,6 +71,7 @@ export default function Home() {
       } finally {
         setLoading(false);
         setLoadingMore(false);
+        isFetchingRef.current = false;
       }
     },
     [feed, posts.length],
@@ -236,23 +245,8 @@ export default function Home() {
                   }}
                 >
                   <Post
-                    id={post.id}
-                    authorId={post.Author?.id}
-                    username={post.Author.username}
-                    avatarUrl={post.Author.profilePicture}
-                    text={post.TextContent}
-                    mediaUrl={post.mediaUrl}
-                    timestamp={new Date(post.CreatedAt).toLocaleDateString()}
-                    likesCount={post.likesCount}
-                    commentsCount={post.commentsCount}
-                    likedByCurrentUser={post.isLikedByCurrentUser}
-                    isCensored={post.isCensored}
+                    post={post}
                     onDelete={handlePostDeleted}
-                    isReadOnly={post.Author.isReadOnly}
-                    isRetweet={post.isRetweet}
-                    originalAuthorUsername={post.originalAuthorUsername}
-                    retweetedBy={post.retweetedBy}
-                    isPinned={user?.pinnedPostId === post.id}
                     onPin={(id, isPinnedNow) => {
                       if (user) {
                         user.pinnedPostId = isPinnedNow ? id : undefined;
@@ -261,6 +255,9 @@ export default function Home() {
                     }}
                     onRetweet={() => {
                       fetchPosts(true);
+                    }}
+                    onUpdate={(updatedPost) => {
+                      setPosts(prev => prev.map(p => p.id === updatedPost.id ? { ...p, ...updatedPost } : p));
                     }}
                   />
                 </motion.div>

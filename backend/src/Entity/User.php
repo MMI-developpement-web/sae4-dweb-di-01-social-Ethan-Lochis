@@ -92,8 +92,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: self::class, inversedBy: 'Blocked')]
     private Collection $Blocked;
 
-    #[ORM\Column(nullable: true)]
-    private ?bool $ReadOnly = null;
+    #[ORM\Column(options: ['default' => false])]
+    private ?bool $ReadOnly = false;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     private ?Post $Pinned = null;

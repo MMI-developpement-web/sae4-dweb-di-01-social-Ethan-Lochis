@@ -57,6 +57,17 @@ export default function SearchBar() {
     return () => clearTimeout(delayDebounceFn);
   }, [query]);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 640px)");
+    setIsMobile(mql.matches);
+    
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, []);
+
   return (
     <div ref={wrapperRef} className="relative w-full max-w-md mx-auto mb-4">
       <div className="relative">
@@ -67,8 +78,8 @@ export default function SearchBar() {
         </div>
         <input
           type="text"
-          className="block w-full pl-10 pr-3 py-2 border border-white/10 rounded-full leading-5 bg-bg-lighter text-fg placeholder-inactive focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary transition-colors"
-          placeholder="Rechercher des posts, @users, #hashtags..."
+          className="block w-full pl-10 pr-3 py-2 border border-white/10 rounded-full leading-5 bg-bg-lighter text-fg text-ellipsis placeholder-inactive focus:outline-none focus:ring-1 focus:ring-secondary focus:border-secondary transition-colors"
+          placeholder={isMobile ? "Rechercher..." : "Rechercher des posts, @users, #hashtags..."}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}

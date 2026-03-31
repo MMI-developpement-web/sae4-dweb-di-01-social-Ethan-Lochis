@@ -461,3 +461,24 @@ export function IconXComments({ className = "size-6" }: IconProps) {
     </svg>
   );
 }
+
+export function IconPin({ className = "size-6" }: IconProps) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <path
+        d="M11.5 1.5L7.5 5.5L3.5 7L2 8.5L9 15.5L10.5 14L12 10L16 6M5.5 12L1 16.5M11 1L16.5 6.5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

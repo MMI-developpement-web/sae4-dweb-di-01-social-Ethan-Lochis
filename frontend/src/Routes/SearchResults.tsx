@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import Navbar from "../components/ui/Navbar";
 import Post from "../components/ui/Post";
@@ -20,6 +20,9 @@ export default function SearchResults() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const limit = 7;
+  
+  const isFetchingRef = useRef(false);
+  const hasMoreRef = useRef(true);
 
   const fetchResults = useCallback(
     async (reset = false) => {
@@ -27,10 +30,15 @@ export default function SearchResults() {
         setPosts([]);
         setLoading(false);
         setHasMore(false);
+        hasMoreRef.current = false;
         return;
       }
+      
+      if (isFetchingRef.current) return;
+      if (!hasMoreRef.current && !reset) return;
 
       try {
+        isFetchingRef.current = true;
         setLoading(() => reset ? true : false);
         setLoadingMore(() => reset ? false : true);
         
@@ -40,7 +48,9 @@ export default function SearchResults() {
           `/posts/search?q=${encodeURIComponent(query)}&limit=${limit}&offset=${currentOffset}`
         );
         
-        setHasMore(data.length >= limit);
+        const more = data.length >= limit;
+        setHasMore(more);
+        hasMoreRef.current = more;
         
         setPosts((prev) => {
           if (reset) return data;
@@ -54,6 +64,7 @@ export default function SearchResults() {
       } finally {
         setLoading(false);
         setLoadingMore(false);
+        isFetchingRef.current = false;
       }
     },
     [query, posts.length]
@@ -69,9 +80,7 @@ export default function SearchResults() {
         window.innerHeight + window.scrollY >=
         document.body.offsetHeight - 500
       ) {
-        if (hasMore && !loading && !loadingMore) {
-          fetchResults(false);
-        }
+        fetchResults(false);
       }
     };
 
@@ -121,31 +130,19 @@ export default function SearchResults() {
               className="mb-4"
             >
               <Post
-                id={post.id}
-                authorId={post.Author?.id}
-                username={post.Author.username}
-                avatarUrl={post.Author.profilePicture}
-                text={post.TextContent}
-                mediaUrl={post.mediaUrl}
-                timestamp={new Date(post.CreatedAt).toLocaleDateString()}
-                likesCount={post.likesCount}
-                commentsCount={post.commentsCount}
-                likedByCurrentUser={post.isLikedByCurrentUser}
-                isCensored={post.isCensored}
+                post={post}
                 onDelete={handlePostDeleted}
-                isReadOnly={post.Author.isReadOnly}
-                isRetweet={post.isRetweet}
-                originalAuthorUsername={post.originalAuthorUsername}
-                retweetedBy={post.retweetedBy}
-                isPinned={user?.pinnedPostId === post.id}
                 onPin={(id, isPinnedNow) => {
                   if (user) {
-                    user.pinnedPostId = isPinnedNow ? id : null;
+                    user.pinnedPostId = isPinnedNow ? id : undefined;
                   }
                   fetchResults(true); 
                 }}
                 onRetweet={() => {
                   fetchResults(true);
+                }}
+                onUpdate={(updatedPost) => {
+                  setPosts(prev => prev.map(p => p.id === updatedPost.id ? { ...p, ...updatedPost } : p));
                 }}
               />
             </motion.div>
