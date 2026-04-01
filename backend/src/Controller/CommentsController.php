@@ -106,4 +106,26 @@ class CommentsController extends AbstractController
 
         return $this->json($comment, JsonResponse::HTTP_OK, [], ['groups' => ['comment:read']]);
     }
+
+    #[Route('/comments/{id}', name: 'post_comments_delete', requirements: ['id' => '\d+'], methods: ['DELETE'])]
+    public function deleteComment(int $id, CommentsRepository $commentsRepository, EntityManagerInterface $em, #[CurrentUser] ?User $user): JsonResponse
+    {
+        if (null === $user) {
+            return $this->json(['error' => 'Vous devez être connecté pour supprimer un commentaire.'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $comment = $commentsRepository->find($id);
+        if (!$comment) {
+            return $this->json(['error' => 'Commentaire non trouvé.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        if ($comment->getAuthor() !== $user && !in_array('ROLE_ADMIN', $user->getRoles())) {
+            return $this->json(['error' => 'Vous n\'êtes pas autorisé à supprimer ce commentaire.'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        $em->remove($comment);
+        $em->flush();
+
+        return $this->json(null, JsonResponse::HTTP_NO_CONTENT);
+    }
 }

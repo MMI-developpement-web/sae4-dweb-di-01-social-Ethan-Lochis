@@ -26,7 +26,7 @@ const postVariants = cva(
         darker: "bg-bg",
       },
       size: {
-        default: "p-4 pr-12 gap-2 gap-y-4 shadow-md",
+        default: "p-4 pr-4 sm:pr-12 gap-2 gap-y-4 shadow-md",
         reply: "p-3 pr-4 gap-2 gap-y-2 shadow-sm border border-white/5",
       },
     },
@@ -63,7 +63,7 @@ export default function Post({
   const isReadOnly = post.Author.isReadOnly || !!user?.isReadOnly;
 
   // Custom Hooks
-  const actions = usePostActions(post, { onDelete, onRetweet, onPin });
+  const actions = usePostActions(post, { onDelete, onRetweet, onPin }, isReply);
   const comments = useComments(post.id, post.commentsCount);
 
   // Guard Clause : Mode Édition
@@ -136,6 +136,8 @@ export default function Post({
           }
           timestamp={timestampString}
           authorId={post.isRetweet ? post.RetweetedBy?.id || 0 : post.Author.id}
+          onEdit={isReply ? () => setIsEditing(true) : undefined}
+          onDelete={isReply ? actions.requestDelete : undefined}
         />
 
         <PostContent

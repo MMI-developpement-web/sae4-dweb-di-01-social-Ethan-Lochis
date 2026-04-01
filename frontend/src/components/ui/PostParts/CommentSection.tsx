@@ -35,6 +35,7 @@ interface CommentSectionProps {
     fetchNextPage: () => void;
     addComment: (comment: any) => void;
     updateComment: (comment: any) => void;
+    deleteComment: (commentId: number) => void;
   };
 }
 
@@ -76,6 +77,7 @@ export function CommentSection({
             background="darker"
             post={mapCommentToPostType(comment)}
             onUpdate={comments.updateComment}
+            onDelete={comments.deleteComment}
           />
         ))}
 

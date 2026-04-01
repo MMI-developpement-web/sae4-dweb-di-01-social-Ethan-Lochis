@@ -67,6 +67,11 @@ export function useComments(postId: number | undefined, initialTotal = 0) {
     setComments(prev => prev.map(c => c.id === updatedComment.id ? { ...c, ...updatedComment } : c));
   }, []);
 
+  const deleteComment = useCallback((commentId: number) => {
+    setComments(prev => prev.filter(c => c.id !== commentId));
+    setTotal(prev => Math.max(0, prev - 1));
+  }, []);
+
   return {
     isOpen,
     comments,
@@ -77,5 +82,6 @@ export function useComments(postId: number | undefined, initialTotal = 0) {
     fetchNextPage,
     addComment,
     updateComment,
+    deleteComment,
   };
 }

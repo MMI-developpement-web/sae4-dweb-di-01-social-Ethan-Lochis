@@ -10,7 +10,7 @@ export interface PostActionCallbacks {
   onPin?: (postId: number, isPinnedNow: boolean) => void;
 }
 
-export function usePostActions(post: PostType, callbacks?: PostActionCallbacks) {
+export function usePostActions(post: PostType, callbacks?: PostActionCallbacks, isReply = false) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -57,7 +57,8 @@ export function usePostActions(post: PostType, callbacks?: PostActionCallbacks) 
 
     setIsDeleting(true);
     try {
-      await apiFetch(`/posts/${post.id}`, { method: "DELETE" });
+      const url = isReply ? `/posts/comments/${post.id}` : `/posts/${post.id}`;
+      await apiFetch(url, { method: "DELETE" });
       callbacks?.onDelete?.(post.id);
       setIsDeleteDialogOpen(false);
     } catch (error) {

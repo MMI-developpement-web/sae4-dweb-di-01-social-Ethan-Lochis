@@ -101,31 +101,36 @@ const PostActionBar = memo(function PostActionBar({
       {user?.username === username && (
         <div className="ml-auto flex gap-3 items-center">
           {!isReply && (
-            <button
-              onClick={() => onPin(isPinned)}
-              disabled={isPinning}
-              title={isPinned ? "Désépingler" : "Épingler"}
-              className={`flex items-center transition-colors disabled:opacity-50 ${
-                isPinned ? "text-secondary" : "text-inactive hover:text-secondary"
-              }`}
-            >
-              <IconPin className="size-5" />
-            </button>
+            <>
+              <button
+                onClick={() => onPin(isPinned)}
+                disabled={isPinning}
+                title={isPinned ? "Désépingler" : "Épingler"}
+                className={`flex items-center transition-colors disabled:opacity-50 ${
+                  isPinned
+                    ? "text-secondary"
+                    : "text-inactive hover:text-secondary"
+                }`}
+              >
+                <IconPin className="size-5" />
+              </button>
+
+              <button
+                onClick={onEdit}
+                disabled={isDeleting}
+                className="text-14 text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
+              >
+                Modifier
+              </button>
+              <button
+                onClick={onDeletePrompt}
+                disabled={isDeleting}
+                className="text-14 text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? "Suppression..." : "Supprimer"}
+              </button>
+            </>
           )}
-          <button
-            onClick={onEdit}
-            disabled={isDeleting}
-            className="text-14 text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
-          >
-            Modifier
-          </button>
-          <button
-            onClick={onDeletePrompt}
-            disabled={isDeleting}
-            className="text-14 text-red-500 hover:text-red-600 transition-colors disabled:opacity-50"
-          >
-            {isDeleting ? "Suppression..." : "Supprimer"}
-          </button>
         </div>
       )}
     </div>

@@ -145,7 +145,7 @@ export default function Home() {
       </header>
 
       <main className="pb-24 lg:pb-0 lg:pl-56">
-        <div className="mx-auto flex max-w-2xl flex-col gap-5 px-6 py-4 sm:px-8 sm:py-6 text-fg">
+        <div className="mx-auto flex max-w-2xl flex-col gap-5 px-4 py-4 sm:px-8 sm:py-6 text-fg">
           <section className="hidden sm:block">
             {user ? (
               <Posting onPostCreated={handlePostCreated} />

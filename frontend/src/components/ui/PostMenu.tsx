@@ -8,9 +8,11 @@ import { IconMore, IconSpinner } from "./Icons";
 interface PostMenuProps {
   userId: number;
   username: string;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export default function PostMenu({ userId, username }: PostMenuProps) {
+export default function PostMenu({ userId, username, onEdit, onDelete }: PostMenuProps) {
   const { user, token } = useAuth();
   const { followedUsers, toggleFollow } = useFollow();
   const { blockedUsers, toggleBlock } = useBlock();
@@ -22,8 +24,9 @@ export default function PostMenu({ userId, username }: PostMenuProps) {
   const isFollowed = followedUsers.has(userId);
   const isBlocked = blockedUsers.has(userId);
 
-  // Ne pas afficher si non connecté ou si c'est le profil courant
-  if (!user || user.id === userId) {
+  // Ne pas afficher si non connecté
+  // Et ne pas afficher si c'est notre profil SAUF si on a des actions (Edit/Delete) à afficher
+  if (!user || (!onEdit && !onDelete && user.id === userId)) {
     return null;
   }
 
@@ -87,22 +90,50 @@ export default function PostMenu({ userId, username }: PostMenuProps) {
           className="absolute right-0 mt-1 w-44 bg-bg-lighter rounded-md shadow-lg border border-white/10 z-20 flex flex-col overflow-hidden"
           aria-label="Menu actions utilisateur"
         >
-          <button
-            onClick={handleToggleFollow}
-            disabled={isLoadingFollow}
-            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-fg hover:bg-white/5 transition-colors text-left cursor-pointer disabled:opacity-50"
-          >
-            {isLoadingFollow && <IconSpinner className="size-4" />}
-            {isFollowed ? "Ne plus suivre" : "Suivre"}
-          </button>
-          <button
-            onClick={handleToggleBlock}
-            disabled={isLoadingBlock}
-            className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors text-left cursor-pointer disabled:opacity-50 border-t border-white/5"
-          >
-            {isLoadingBlock && <IconSpinner className="size-4" />}
-            {isBlocked ? "Débloquer" : "Bloquer"}
-          </button>
+          {onEdit && (
+            <button
+              onClick={() => {
+                onEdit();
+                setIsOpen(false);
+              }}
+              className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-fg hover:bg-white/5 transition-colors text-left cursor-pointer"
+            >
+              Modifier
+            </button>
+          )}
+
+          {user.id !== userId && (
+            <>
+              <button
+                onClick={handleToggleFollow}
+                disabled={isLoadingFollow}
+                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-fg hover:bg-white/5 transition-colors text-left cursor-pointer disabled:opacity-50"
+              >
+                {isLoadingFollow && <IconSpinner className="size-4" />}
+                {isFollowed ? "Ne plus suivre" : "Suivre"}
+              </button>
+              <button
+                onClick={handleToggleBlock}
+                disabled={isLoadingBlock}
+                className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors text-left cursor-pointer disabled:opacity-50 border-t border-white/5"
+              >
+                {isLoadingBlock && <IconSpinner className="size-4" />}
+                {isBlocked ? "Débloquer" : "Bloquer"}
+              </button>
+            </>
+          )}
+
+          {onDelete && (
+            <button
+              onClick={() => {
+                onDelete();
+                setIsOpen(false);
+              }}
+              className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-500 hover:bg-red-500/10 transition-colors text-left cursor-pointer border-t border-white/5"
+            >
+              Supprimer
+            </button>
+          )}
         </nav>
       )}
     </div>
