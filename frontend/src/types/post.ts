@@ -20,5 +20,6 @@ export interface PostType {
     id: number;
     username: string;
     profilePicture?: string;
+    isReadOnly?: boolean;
   };
 }

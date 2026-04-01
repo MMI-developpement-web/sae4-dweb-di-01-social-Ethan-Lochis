@@ -62,7 +62,7 @@ const PostActionBar = memo(function PostActionBar({
       />
 
       {/* Comment button */}
-      {!isReadOnly && !user?.isReadOnly && (
+      {!isReadOnly && (
         <button
           onClick={onToggleComments}
           className="flex items-center gap-1.5 text-inactive hover:text-primary transition-colors focus:outline-none"

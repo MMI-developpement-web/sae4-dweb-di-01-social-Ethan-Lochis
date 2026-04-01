@@ -60,7 +60,12 @@ export default function Post({
 
   // Computed states
   const isPinned = user?.pinnedPostId === post.id;
-  const isReadOnly = post.Author.isReadOnly || !!user?.isReadOnly;
+  const authorIsReadOnly = post.Author.id === user?.id ? !!user?.isReadOnly : !!post.Author.isReadOnly;
+  const retweeterIsReadOnly = post.RetweetedBy?.id === user?.id ? !!user?.isReadOnly : !!post.RetweetedBy?.isReadOnly;
+
+  const isPostReadOnly = post.isRetweet
+    ? retweeterIsReadOnly || authorIsReadOnly
+    : authorIsReadOnly;
 
   // Custom Hooks
   const actions = usePostActions(post, { onDelete, onRetweet, onPin }, isReply);
@@ -158,7 +163,7 @@ export default function Post({
             isReply={isReply}
             isPinned={isPinned}
             isRetweet={post.isRetweet || false}
-            isReadOnly={isReadOnly}
+            isReadOnly={isPostReadOnly}
             likesCount={actions.likesCount}
             isLiked={actions.isLiked}
             onLike={actions.toggleLike}
@@ -193,7 +198,7 @@ export default function Post({
           <CommentSection
             postId={post.id}
             comments={comments}
-            isReadOnly={isReadOnly}
+            isReadOnly={isPostReadOnly}
           />
         )}
       </AnimatePresence>
