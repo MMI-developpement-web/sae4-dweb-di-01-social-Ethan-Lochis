@@ -13,8 +13,8 @@ export default function PostingPage() {
         <img src="./Logo.png" alt="Kontakt logo" className="max-h-8 lg:max-h-16 w-auto" />
       </header>
 
-      <main className="pb-20 lg:pb-0 lg:pl-56">
-        <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4 text-fg">
+      <main className="pb-24 lg:pb-0 lg:pl-56">
+        <div className="mx-auto flex max-w-2xl flex-col gap-5 p-4 sm:p-6 text-fg">
           <Posting onPostCreated={() => navigate('/')} />
         </div>
       </main>

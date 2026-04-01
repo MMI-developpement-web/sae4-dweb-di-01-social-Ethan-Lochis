@@ -77,7 +77,7 @@ export default function Profile() {
     <div className="min-h-screen bg-bg flex flex-col">
       <Navbar />
 
-      <main className="flex-1 max-w-150 w-full mx-auto bg-bg-lighter min-h-screen p-12 shadow-lg">
+      <main className="flex-1 max-w-150 w-full mx-auto bg-bg-lighter min-h-screen p-4 pb-24 sm:p-8 lg:p-12 lg:pb-12 shadow-lg">
         {user ? (
           <ProfileHeader
             username={user.username}

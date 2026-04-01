@@ -96,7 +96,7 @@ export default function SearchResults() {
     <div data-theme="default" className="bg-bg min-h-screen flex flex-col">
       <Navbar username={user?.username || "Invité"} />
 
-      <main className="flex-1 max-w-2xl w-full mx-auto p-4 pt-16 lg:pt-4 text-fg">
+      <main className="flex-1 max-w-2xl w-full mx-auto p-4 pb-24 sm:p-6 lg:p-4 text-fg">
         <div className="mb-6 flex items-center justify-between">
           <button 
             onClick={() => navigate(-1)}

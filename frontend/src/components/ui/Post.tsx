@@ -26,12 +26,12 @@ const postVariants = cva(
         darker: "bg-bg",
       },
       size: {
-        default: "p-4 pr-12 gap-3 gap-y-4 shadow-md",
+        default: "p-4 pr-12 gap-2 gap-y-4 shadow-md",
         reply: "p-3 pr-4 gap-2 gap-y-2 shadow-sm border border-white/5",
       },
     },
     defaultVariants: { background: "default", size: "default" },
-  }
+  },
 );
 
 interface EnhancedPostProps {
@@ -70,7 +70,11 @@ export default function Post({
   if (isEditing) {
     return (
       <div className={postVariants({ background })}>
-        <PostAvatar username={post.Author.username} avatarUrl={post.Author.profilePicture} isReply={isReply} />
+        <PostAvatar
+          username={post.Author.username}
+          avatarUrl={post.Author.profilePicture}
+          isReply={isReply}
+        />
         <div className="flex flex-col gap-1 w-full relative">
           <Posting
             variant={isReply ? "comment" : "post"}
@@ -89,31 +93,56 @@ export default function Post({
     );
   }
 
-  const timestampString = post.CreatedAt ? formatTimeAgo(post.CreatedAt) : "À l'instant";
+  const timestampString = post.CreatedAt
+    ? formatTimeAgo(post.CreatedAt)
+    : "À l'instant";
 
   return (
-    <figure className={postVariants({ background, size: isReply ? "reply" : "default" })}>
+    <figure
+      className={postVariants({
+        background,
+        size: isReply ? "reply" : "default",
+      })}
+    >
       {!post.isRetweet ? (
-        <PostAvatar username={post.Author.username} avatarUrl={post.Author.profilePicture} isReply={isReply} />
+        <PostAvatar
+          username={post.Author.username}
+          avatarUrl={post.Author.profilePicture}
+          isReply={isReply}
+        />
       ) : (
-        <PostAvatar username={post.RetweetedBy?.username || "Inconnu"} avatarUrl={post.RetweetedBy?.profilePicture} isReply={isReply} />
+        <PostAvatar
+          username={post.RetweetedBy?.username || "Inconnu"}
+          avatarUrl={post.RetweetedBy?.profilePicture}
+          isReply={isReply}
+        />
       )}
 
       <div className="flex flex-col gap-1 w-full relative">
         {/* Context Indicators (Pinned) */}
         {isPinned && (
           <div className="flex items-center gap-2 text-14 text-inactive mb-1 font-medium">
-            <span className="flex items-center gap-1.5"><IconPin className="size-4" /> Épinglé</span>
+            <span className="flex items-center gap-1.5">
+              <IconPin className="size-4" /> Épinglé
+            </span>
           </div>
         )}
 
-        <PostHeader 
-          username={post.isRetweet ? (post.RetweetedBy?.username || "Inconnu") : post.Author.username} 
-          timestamp={timestampString} 
-          authorId={post.isRetweet ? (post.RetweetedBy?.id || 0) : post.Author.id} 
+        <PostHeader
+          username={
+            post.isRetweet
+              ? post.RetweetedBy?.username || "Inconnu"
+              : post.Author.username
+          }
+          timestamp={timestampString}
+          authorId={post.isRetweet ? post.RetweetedBy?.id || 0 : post.Author.id}
         />
 
-        <PostContent text={post.TextContent} mediaUrl={post.mediaUrl} isCensored={post.isCensored} />
+        <PostContent
+          text={post.TextContent}
+          mediaUrl={post.mediaUrl}
+          isCensored={post.isCensored}
+        />
 
         {post.isRetweet && post.originalAuthorUsername && (
           <p className="text-14 text-inactive mt-1">
@@ -128,18 +157,14 @@ export default function Post({
             isPinned={isPinned}
             isRetweet={post.isRetweet || false}
             isReadOnly={isReadOnly}
-            
             likesCount={actions.likesCount}
             isLiked={actions.isLiked}
             onLike={actions.toggleLike}
-            
             commentsCount={comments.total}
             onToggleComments={comments.toggle}
-            
             isRetweeting={actions.isRetweeting}
             isPinning={actions.isPinning}
             isDeleting={actions.isDeleting}
-            
             onRetweet={actions.retweetPost}
             onPin={actions.togglePin}
             onEdit={() => setIsEditing(true)}

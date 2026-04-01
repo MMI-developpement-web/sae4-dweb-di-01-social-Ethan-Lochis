@@ -14,7 +14,7 @@ export function PostContent({ text, mediaUrl, isCensored }: PostContentProps) {
     <>
       {/* Corps du message */}
       <p
-        className={`text-16 leading-relaxed whitespace-pre-wrap ${
+        className={`text-16 leading-relaxed whitespace-pre-wrap break-words break-all sm:break-words w-full overflow-hidden ${
           isCensored ? "text-red-400 italic" : "text-fg"
         }`}
       >

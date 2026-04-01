@@ -5,11 +5,10 @@ import Post from "../components/ui/Post";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
 import { RefreshIcon } from "../components/ui/Icons";
-import { motion } from 'framer-motion'; 
+import { motion } from "framer-motion";
 import Button from "../components/ui/Button";
 import type { PostType } from "../types/post";
 import SearchBar from "../components/ui/SearchBar";
-
 
 export default function Home() {
   const [posts, setPosts] = useState<PostType[]>([]);
@@ -41,29 +40,29 @@ export default function Home() {
     async (reset = false) => {
       if (isFetchingRef.current) return;
       if (!hasMoreRef.current && !reset) return;
-      
+
       try {
         isFetchingRef.current = true;
-        setLoading(() => reset ? true : false);
-        setLoadingMore(() => reset ? false : true);
-        
+        setLoading(() => (reset ? true : false));
+        setLoadingMore(() => (reset ? false : true));
+
         // Use posts.length only if not resetting
         const currentOffset = reset ? 0 : posts.length;
-        
+
         const data = await apiFetch<PostType[]>(
           `/posts?limit=${limit}&offset=${currentOffset}&feed=${feed}`,
         );
-        
+
         const more = data.length >= limit;
         setHasMore(more);
         hasMoreRef.current = more;
-        
+
         // Filter out posts that already exist to prevent duplicate key warnings
         setPosts((prev) => {
           if (reset) return data;
-          
-          const existingIds = new Set(prev.map(p => p.id));
-          const newPosts = data.filter(p => !existingIds.has(p.id));
+
+          const existingIds = new Set(prev.map((p) => p.id));
+          const newPosts = data.filter((p) => !existingIds.has(p.id));
           return [...prev, ...newPosts];
         });
       } catch (err: any) {
@@ -88,7 +87,7 @@ export default function Home() {
     if (refreshInterval === 0) return;
 
     const intervalId = setInterval(() => {
-      // SÉCURITÉ UX CRUCIALE : 
+      // SÉCURITÉ UX CRUCIALE :
       // On ne rafraîchit automatiquement QUE si l'utilisateur est tout en haut de la page.
       // S'il a scrollé vers le bas pour lire des anciens posts, on ne le dérange pas !
       if (window.scrollY < 100) {
@@ -99,7 +98,6 @@ export default function Home() {
 
     // Fonction de nettoyage (très important en React pour éviter les fuites de mémoire)
     return () => clearInterval(intervalId);
-    
   }, [refreshInterval, fetchPosts]);
 
   useEffect(() => {
@@ -128,32 +126,38 @@ export default function Home() {
   };
 
   const handlePostDeleted = (deletedId: number) => {
-    setPosts(prev => prev.filter(post => post.id !== deletedId));
+    setPosts((prev) => prev.filter((post) => post.id !== deletedId));
   };
 
   return (
-    <div data-theme="default" className="bg-bg min-h-screen">
+    <div data-theme="default" className="bg-bg min-h-screen ">
       <header className="lg:pl-56 flex justify-between items-center bg-bg border-b border-white/10 p-3 w-full">
         <div>
-          <img src="./Logo.png" alt="Kontakt logo" className="max-h-8 lg:max-h-16 w-auto" />
+          <img
+            src="./Logo.png"
+            alt="Kontakt logo"
+            className="max-h-8 lg:max-h-16 w-auto"
+          />
         </div>
         <div className="flex-1 max-w-lg mx-4">
           <SearchBar />
         </div>
       </header>
 
-      <main className="pb-20 lg:pb-0 lg:pl-56">
-        <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4 text-fg">
+      <main className="pb-24 lg:pb-0 lg:pl-56">
+        <div className="mx-auto flex max-w-2xl flex-col gap-5 px-6 py-4 sm:px-8 sm:py-6 text-fg">
           <section className="hidden sm:block">
             {user ? (
               <Posting onPostCreated={handlePostCreated} />
             ) : (
               <div className="bg-fg/10 border border-fg/20 rounded-lg p-6 text-center">
-                <p className="text-fg/70 mb-8">Connectez-vous pour avoir accès à toutes les fonctionnalités</p>
+                <p className="text-fg/70 mb-8">
+                  Connectez-vous pour avoir accès à toutes les fonctionnalités
+                </p>
                 <Button
                   variant="primary"
                   size="md"
-                  onClick={() => window.location.href = "./Auth"}
+                  onClick={() => (window.location.href = "./Auth")}
                 >
                   Se connecter
                 </Button>
@@ -168,8 +172,8 @@ export default function Home() {
               </h1>
               <div className="flex items-center gap-3">
                 {/* Le nouveau sélecteur */}
-                <select 
-                  value={refreshInterval} 
+                <select
+                  value={refreshInterval}
                   onChange={handleIntervalChange}
                   className="bg-bg border border-white/10 text-fg text-sm rounded-md px-2 py-1 outline-none focus:border-secondary transition-colors cursor-pointer"
                 >
@@ -181,8 +185,8 @@ export default function Home() {
                 </select>
 
                 {/* Ton bouton actuel */}
-                <button 
-                  onClick={handleRefresh} 
+                <button
+                  onClick={handleRefresh}
                   disabled={isRefreshing}
                   className="p-2 hover:bg-white/5 rounded-full transition-colors"
                   aria-label="Rafraîchir"
@@ -193,7 +197,10 @@ export default function Home() {
             </div>
 
             {user && (
-              <nav className="flex bg-fg/10 rounded-lg p-1 w-full sm:w-1/2 mx-auto sm:mx-0 mb-2" aria-label="Filtres de contenu">
+              <nav
+                className="flex bg-fg/10 rounded-lg p-1 w-full sm:w-1/2 mx-auto sm:mx-0 mb-2"
+                aria-label="Filtres de contenu"
+              >
                 <button
                   onClick={() => setFeed("foryou")}
                   disabled={loading}
@@ -236,12 +243,12 @@ export default function Home() {
                   key={`${post.id}-${index}`}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ 
-                    duration: 0.5, 
+                  transition={{
+                    duration: 0.5,
                     // On limite le délai aux 7 premiers posts (la limite de ton fetch)
                     // pour éviter que les anciens posts mettent 10 secondes à apparaître
                     // quand tu scrolles vers le bas (infinite scroll)
-                    delay: (index % limit) * 0.1 
+                    delay: (index % limit) * 0.1,
                   }}
                 >
                   <Post
@@ -251,13 +258,19 @@ export default function Home() {
                       if (user) {
                         user.pinnedPostId = isPinnedNow ? id : undefined;
                       }
-                      fetchPosts(true); 
+                      fetchPosts(true);
                     }}
                     onRetweet={() => {
                       fetchPosts(true);
                     }}
                     onUpdate={(updatedPost) => {
-                      setPosts(prev => prev.map(p => p.id === updatedPost.id ? { ...p, ...updatedPost } : p));
+                      setPosts((prev) =>
+                        prev.map((p) =>
+                          p.id === updatedPost.id
+                            ? { ...p, ...updatedPost }
+                            : p,
+                        ),
+                      );
                     }}
                   />
                 </motion.div>
