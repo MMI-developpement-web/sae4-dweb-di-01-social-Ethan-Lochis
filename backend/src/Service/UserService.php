@@ -121,20 +121,26 @@ class UserService
         return true;
     }
 
+    private const ALLOWED_PROFILE_MIMES = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    ];
+
     public function handleMediaUpload($uploadedFile): string
     {
+        $mimeType = $uploadedFile->getMimeType();
+        if (!in_array($mimeType, self::ALLOWED_PROFILE_MIMES, true)) {
+            throw new InvalidArgumentException('Type de fichier non autorisé. Formats acceptés : JPEG, PNG, GIF, WebP.');
+        }
+
         try {
             $fileName = bin2hex(random_bytes(8));
-            $extension = pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_EXTENSION);
-            $newFileName = $fileName . '.' . strtolower($extension);
+            $extension = $uploadedFile->guessExtension() ?? 'bin';
+            $newFileName = $fileName . '.' . $extension;
 
-            // Créer le répertoire s'il n'existe pas
             $uploadDir = $this->projectDir . '/public/uploads/profiles';
-            
-            if (!is_dir($uploadDir)) {
-                if (!@mkdir($uploadDir, 0755, true)) {
-                    throw new InvalidArgumentException('Failed to create upload directory.');
-                }
+
+            if (!is_dir($uploadDir) && !@mkdir($uploadDir, 0755, true)) {
+                throw new InvalidArgumentException('Failed to create upload directory.');
             }
 
             $uploadedFile->move($uploadDir, $newFileName);

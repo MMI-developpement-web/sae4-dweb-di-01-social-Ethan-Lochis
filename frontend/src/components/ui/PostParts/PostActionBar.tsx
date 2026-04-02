@@ -20,7 +20,8 @@ interface PostActionBarProps {
   commentsCount: number;
   onToggleComments: () => void;
 
-  // Action operations
+  // Retweet operations
+  retweetsCount: number;
   isRetweeting: boolean;
   isPinning: boolean;
   isDeleting: boolean;
@@ -42,6 +43,7 @@ const PostActionBar = memo(function PostActionBar({
   onLike,
   commentsCount,
   onToggleComments,
+  retweetsCount,
   isRetweeting,
   isPinning,
   isDeleting,
@@ -74,29 +76,32 @@ const PostActionBar = memo(function PostActionBar({
       )}
 
       {/* Retweet button */}
-      <button
-        onClick={onRetweet}
-        disabled={isRetweeting || isRetweet || user?.username === username}
-        className="flex items-center gap-1.5 text-inactive hover:text-green-500 transition-colors focus:outline-none disabled:opacity-50"
-        aria-label="Retweeter"
-      >
-        <svg
-          fill="none"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          height="20"
-          width="20"
-          aria-hidden="true"
+      {!isRetweet && (
+        <button
+          onClick={onRetweet}
+          disabled={isRetweeting || user?.username === username}
+          className="flex items-center gap-1.5 text-inactive hover:text-green-500 transition-colors focus:outline-none disabled:opacity-50"
+          aria-label="Retweeter"
         >
-          <path d="M17 2l4 4-4 4"></path>
-          <path d="M3 11v-1a4 4 0 0 1 4-4h14"></path>
-          <path d="M7 22l-4-4 4-4"></path>
-          <path d="M21 13v1a4 4 0 0 1-4 4H3"></path>
-        </svg>
-      </button>
+          <svg
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            height="20"
+            width="20"
+            aria-hidden="true"
+          >
+            <path d="M17 2l4 4-4 4"></path>
+            <path d="M3 11v-1a4 4 0 0 1 4-4h14"></path>
+            <path d="M7 22l-4-4 4-4"></path>
+            <path d="M21 13v1a4 4 0 0 1-4 4H3"></path>
+          </svg>
+          <span className="text-14 font-medium">{retweetsCount}</span>
+        </button>
+      )}
 
       {user?.username === username && (
         <div className="ml-auto flex gap-3 items-center">

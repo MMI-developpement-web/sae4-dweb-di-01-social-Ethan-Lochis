@@ -73,63 +73,40 @@ class PostService
         return $post;
     }
 
+    private const ALLOWED_MIME_TYPES = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+    ];
+
     private function handleMediaUpload($uploadedFile): string
     {
         try {
-            $fileName = $this->generateUniqueFileName();
-            $extension = $this->getFileExtension($uploadedFile->getClientOriginalName());
+            // Valider le MIME type réel (pas l'extension client)
+            $mimeType = $uploadedFile->getMimeType();
+            if (!in_array($mimeType, self::ALLOWED_MIME_TYPES, true)) {
+                throw new InvalidArgumentException('Type de fichier non autorisé. Formats acceptés : JPEG, PNG, GIF, WebP, MP4, WebM.');
+            }
+
+            $fileName = bin2hex(random_bytes(16));
+            $extension = $uploadedFile->guessExtension() ?? 'bin';
             $newFileName = $fileName . '.' . $extension;
 
-            // Créer le répertoire s'il n'existe pas
             $uploadDir = $this->projectDir . '/public/uploads/media';
-            
-            // Vérifier si le répertoire parent existe
-            $uploadsParentDir = $this->projectDir . '/public/uploads';
-            if (!is_dir($uploadsParentDir)) {
-                if (!@mkdir($uploadsParentDir, 0755, true)) {
-                    throw new FileException('Impossible de créer le répertoire des uploads.');
-                }
+
+            if (!is_dir($uploadDir) && !@mkdir($uploadDir, 0755, true)) {
+                throw new FileException('Impossible de créer le répertoire des médias.');
             }
 
-            // Créer le répertoire media
-            if (!is_dir($uploadDir)) {
-                if (!@mkdir($uploadDir, 0755, true)) {
-                    throw new FileException('Impossible de créer le répertoire des médias.');
-                }
-            }
-
-            // Vérifier les permissions
             if (!is_writable($uploadDir)) {
                 throw new FileException('Le répertoire des médias n\'a pas les permissions d\'écriture.');
             }
 
-            // Déplacer le fichier
             $uploadedFile->move($uploadDir, $newFileName);
 
-            // Vérifier que le fichier existe bien
-            $filePath = $uploadDir . '/' . $newFileName;
-            if (!file_exists($filePath)) {
-                throw new FileException('Le fichier n\'a pas pu être sauvegardé.');
-            }
-
-            // Retourner l'URL accessible
             return '/uploads/media/' . $newFileName;
         } catch (FileException $e) {
             throw new InvalidArgumentException('Erreur lors de l\'upload du fichier : ' . $e->getMessage());
-        } catch (\Exception $e) {
-            throw new InvalidArgumentException('Erreur inattendue lors de l\'upload : ' . $e->getMessage());
         }
-    }
-
-    private function generateUniqueFileName(): string
-    {
-        return bin2hex(random_bytes(16));
-    }
-
-    private function getFileExtension(string $originalFileName): string
-    {
-        $parts = explode('.', $originalFileName);
-        return strtolower(end($parts));
     }
 
     public function toggleLike(Post $post, User $user): array
@@ -164,6 +141,19 @@ class PostService
      */
     public function hydratePostRelations(array $posts, ?User $currentUser): void
     {
+        if (empty($posts)) {
+            return;
+        }
+
+        // Hydratation globale : nombre de retweets (pas besoin d'être connecté)
+        $postIds = array_map(fn($p) => $p->getId(), $posts);
+        $retweetsCounts = $this->postRepository->getRetweetsCounts($postIds);
+
+        foreach ($posts as $post) {
+            $post->setRetweetsCount($retweetsCounts[$post->getId()] ?? 0);
+        }
+
+        // Hydratation liée à l'utilisateur courant
         if ($currentUser === null) {
             return;
         }

@@ -2,8 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
-import { FollowProvider } from "./contexts/FollowContext";
-import { BlockProvider } from "./contexts/BlockContext";
+import { UserRelationsProvider } from "./contexts/UserRelationsContext";
 import { NotificationProvider } from "./contexts/NotificationContext";
 import { Toaster } from "./components/ui/Toaster";
 import { setupAPIInterceptor } from "./lib/apiInterceptor";
@@ -33,7 +32,7 @@ const router = createBrowserRouter(
       element: <PostingPage />,
     },
     {
-      path: "/profile",
+      path: "/profile/:username?",
       element: <Profile />,
     },
     {
@@ -55,12 +54,10 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <NotificationProvider>
       <AuthProvider>
-        <FollowProvider>
-          <BlockProvider>
-            <RouterProvider router={router} />
-            <Toaster />
-          </BlockProvider>
-        </FollowProvider>
+        <UserRelationsProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </UserRelationsProvider>
       </AuthProvider>
     </NotificationProvider>
   </StrictMode>,

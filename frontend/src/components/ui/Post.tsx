@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { cva } from "class-variance-authority";
 import { AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import type { PostType } from "../../types/post";
 
@@ -60,8 +61,9 @@ export default function Post({
 
   // Computed states
   const isPinned = user?.pinnedPostId === post.id;
-  const authorIsReadOnly = post.Author.id === user?.id ? !!user?.isReadOnly : !!post.Author.isReadOnly;
-  const retweeterIsReadOnly = post.RetweetedBy?.id === user?.id ? !!user?.isReadOnly : !!post.RetweetedBy?.isReadOnly;
+  const checkReadOnly = (obj: any) => !!(obj?.readOnly || obj?.isReadOnly);
+  const authorIsReadOnly = post.Author.id === user?.id ? checkReadOnly(user) : checkReadOnly(post.Author);
+  const retweeterIsReadOnly = post.RetweetedBy ? (post.RetweetedBy.id === user?.id ? checkReadOnly(user) : checkReadOnly(post.RetweetedBy)) : false;
 
   const isPostReadOnly = post.isRetweet
     ? retweeterIsReadOnly || authorIsReadOnly
@@ -153,7 +155,13 @@ export default function Post({
 
         {post.isRetweet && post.originalAuthorUsername && (
           <p className="text-14 text-inactive mt-1">
-            Créé à l'origine par @{post.originalAuthorUsername}
+            Créé à l'origine par{" "}
+            <Link
+              to={`/profile/${post.originalAuthorUsername}`}
+              className="text-primary hover:underline hover:text-primary/80 transition-colors"
+            >
+              @{post.originalAuthorUsername}
+            </Link>
           </p>
         )}
 
@@ -169,6 +177,7 @@ export default function Post({
             onLike={actions.toggleLike}
             commentsCount={comments.total}
             onToggleComments={comments.toggle}
+            retweetsCount={actions.retweetsCount}
             isRetweeting={actions.isRetweeting}
             isPinning={actions.isPinning}
             isDeleting={actions.isDeleting}

@@ -29,7 +29,7 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
     if (isOpen && user) {
       setBio(user.bio || "");
       setLocation(user.location || "");
-      setIsReadOnly(user.isReadOnly || false);
+      setIsReadOnly(user.isReadOnly || user.readOnly || false);
       setPreview(user.profilePicture ? getMediaUrl(user.profilePicture) : null);
       setSelectedFile(null);
       setError(null);

@@ -8,18 +8,20 @@ export interface PostType {
     username: string;
     profilePicture?: string;
     isFollowedByCurrentUser?: boolean;
-    isReadOnly?: boolean;
+    readOnly?: boolean;
   };
   likesCount?: number;
   commentsCount?: number;
+  retweetsCount?: number;
   isLikedByCurrentUser?: boolean;
   isCensored?: boolean;
   isRetweet?: boolean;
   originalAuthorUsername?: string;
+  OriginalPostId?: number;
   RetweetedBy?: {
     id: number;
     username: string;
     profilePicture?: string;
-    isReadOnly?: boolean;
+    readOnly?: boolean;
   };
 }

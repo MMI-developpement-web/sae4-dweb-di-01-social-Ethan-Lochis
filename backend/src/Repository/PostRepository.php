@@ -110,4 +110,30 @@ class PostRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * @param int[] $postIds
+     * @return array<int, int> Map de post ID => nombre de retweets
+     */
+    public function getRetweetsCounts(array $postIds): array
+    {
+        if (empty($postIds)) {
+            return [];
+        }
+
+        $qb = $this->createQueryBuilder('p')
+            ->select('p.OriginalPostId, COUNT(p.id) as retweetsCount')
+            ->where('p.OriginalPostId IN (:postIds)')
+            ->andWhere('p.isRetweet = true')
+            ->setParameter('postIds', $postIds)
+            ->groupBy('p.OriginalPostId');
+
+        $results = $qb->getQuery()->getResult();
+        $counts = [];
+        foreach ($results as $row) {
+            $counts[$row['OriginalPostId']] = (int) $row['retweetsCount'];
+        }
+
+        return $counts;
+    }
 }

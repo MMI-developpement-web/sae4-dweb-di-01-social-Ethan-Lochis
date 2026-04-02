@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useFollow } from "../../contexts/FollowContext";
-import { useBlock } from "../../contexts/BlockContext";
+import { useFollow, useBlock } from "../../contexts/UserRelationsContext";
 import { apiFetch } from "../../lib/api";
 import { IconMore, IconSpinner } from "./Icons";
 
@@ -24,13 +23,7 @@ export default function PostMenu({ userId, username, onEdit, onDelete }: PostMen
   const isFollowed = followedUsers.has(userId);
   const isBlocked = blockedUsers.has(userId);
 
-  // Ne pas afficher si non connecté
-  // Et ne pas afficher si c'est notre profil SAUF si on a des actions (Edit/Delete) à afficher
-  if (!user || (!onEdit && !onDelete && user.id === userId)) {
-    return null;
-  }
-
-  // Fermer le menu au clic extérieur
+  // Fermer le menu au clic extérieur — DOIT être avant le return conditionnel
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -40,6 +33,12 @@ export default function PostMenu({ userId, username, onEdit, onDelete }: PostMen
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Ne pas afficher si non connecté
+  // Et ne pas afficher si c'est notre profil SAUF si on a des actions (Edit/Delete) à afficher
+  if (!user || (!onEdit && !onDelete && user.id === userId)) {
+    return null;
+  }
 
   async function handleToggleFollow() {
     if (isLoadingFollow || !token) return;

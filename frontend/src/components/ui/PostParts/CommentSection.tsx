@@ -19,7 +19,7 @@ function mapCommentToPostType(comment: any): PostType {
       id: comment.author?.id || 0,
       username: comment.author?.username || "Utilisateur",
       profilePicture: comment.author?.profilePicture,
-      isReadOnly: false,
+      readOnly: comment.author?.readOnly ?? comment.author?.isReadOnly ?? false,
     }
   };
 }

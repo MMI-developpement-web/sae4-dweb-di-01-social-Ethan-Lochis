@@ -141,6 +141,41 @@ class UserController extends AbstractController
         return $this->json($blockedUsers);
     }
 
+    #[Route('/username/{username}', name: 'user_by_username', methods: ['GET'])]
+    public function getByUsername(string $username, UserRepository $userRepository, #[CurrentUser] ?User $currentUser): JsonResponse
+    {
+        $targetUser = $userRepository->findOneBy(['username' => $username]);
+
+        if ($targetUser === null) {
+            return $this->json(['error' => 'User not found.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        $followedIds = [];
+        $blockedIds = [];
+
+        if ($currentUser !== null) {
+            $followedIds = array_map(
+                fn($u) => $u->getId(),
+                $currentUser->getSubscription()->toArray()
+            );
+
+            $blockedIds = array_map(
+                fn($u) => $u->getId(),
+                $currentUser->getBlocked()->toArray()
+            );
+        }
+
+        $followerCount = (int) $userRepository->countFollowers($targetUser);
+
+        return $this->json([
+            'user' => $this->serializeUser($targetUser),
+            'followedIds' => $followedIds,
+            'blockedIds' => $blockedIds,
+            'followingCount' => $targetUser->getSubscription()->count(),
+            'followerCount' => $followerCount,
+        ]);
+    }
+
     #[Route('/me', name: 'me', methods: ['GET'])]
     public function getCurrentUser(#[CurrentUser] ?User $currentUser, UserRepository $userRepository): JsonResponse
     {
