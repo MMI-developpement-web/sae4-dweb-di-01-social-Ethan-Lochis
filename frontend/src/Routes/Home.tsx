@@ -87,7 +87,7 @@ export default function Home() {
     if (refreshInterval === 0) return;
 
     const intervalId = setInterval(() => {
-      // SÉCURITÉ UX CRUCIALE :
+      // SÉCURITÉ :
       // On ne rafraîchit automatiquement QUE si l'utilisateur est tout en haut de la page.
       // S'il a scrollé vers le bas pour lire des anciens posts, on ne le dérange pas !
       if (window.scrollY < 100) {
@@ -171,7 +171,6 @@ export default function Home() {
                 Votre fil d'actualité
               </h1>
               <div className="flex items-center gap-3">
-                {/* Le nouveau sélecteur */}
                 <select
                   value={refreshInterval}
                   onChange={handleIntervalChange}
@@ -184,7 +183,6 @@ export default function Home() {
                   <option value={900000}>Toutes les 15 minutes</option>
                 </select>
 
-                {/* Ton bouton actuel */}
                 <button
                   onClick={handleRefresh}
                   disabled={isRefreshing}
@@ -245,7 +243,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
                     duration: 0.5,
-                    // On limite le délai aux 7 premiers posts (la limite de ton fetch)
+                    // On limite le délai aux 7 premiers posts
                     // pour éviter que les anciens posts mettent 10 secondes à apparaître
                     // quand tu scrolles vers le bas (infinite scroll)
                     delay: (index % limit) * 0.1,

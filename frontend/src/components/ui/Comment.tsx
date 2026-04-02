@@ -26,7 +26,7 @@ export default function Comment({ text, authorUsername, authorAvatarUrl, created
            <span className="text-14 font-medium text-fg truncate">{authorUsername}</span>
            <span className="text-12 text-inactive whitespace-nowrap">{formatTimeAgo(createdAt)}</span>
         </div>
-        <p className="text-14 text-fg/90 whitespace-pre-wrap break-words">{text}</p>
+        <p className="text-14 text-fg/90 whitespace-pre-wrap wrap-break-words">{text}</p>
       </div>
     </motion.article>
   );

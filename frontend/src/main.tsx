@@ -46,7 +46,6 @@ const router = createBrowserRouter(
     },
   ],
   {
-    // Cette ligne est LA clé : elle récupère le chemin que tu passeras au build
     basename: import.meta.env.BASE_URL,
   },
 );
