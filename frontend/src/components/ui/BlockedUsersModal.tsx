@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "../../lib/api";
-import { useBlock } from "../../contexts/BlockContext";
+import { useBlock } from "../../contexts/UserRelationsContext";
 import { getMediaUrl } from "../../lib/utils";
 import Button from "./Button";
 import { IconSpinner, IconClose } from "./Icons";

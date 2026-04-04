@@ -58,8 +58,10 @@ class Post
 
     private bool $isLikedByCurrentUser = false;
 
+    #[Groups(['post:read'])]
+    private int $retweetsCount = 0;
+
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['post:read', 'post:write'])]
     private ?string $media_url = null;
 
     /**
@@ -113,6 +115,17 @@ class Post
     public function setIsLikedByCurrentUser(bool $isLiked): static
     {
         $this->isLikedByCurrentUser = $isLiked;
+        return $this;
+    }
+
+    public function getRetweetsCount(): int
+    {
+        return $this->retweetsCount;
+    }
+
+    public function setRetweetsCount(int $count): static
+    {
+        $this->retweetsCount = $count;
         return $this;
     }
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { cva } from "class-variance-authority";
 import { AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import type { PostType } from "../../types/post";
 
@@ -26,7 +27,7 @@ const postVariants = cva(
         darker: "bg-bg",
       },
       size: {
-        default: "p-4 pr-12 gap-2 gap-y-4 shadow-md",
+        default: "p-4 pr-4 sm:pr-12 gap-2 gap-y-4 shadow-md",
         reply: "p-3 pr-4 gap-2 gap-y-2 shadow-sm border border-white/5",
       },
     },
@@ -60,10 +61,16 @@ export default function Post({
 
   // Computed states
   const isPinned = user?.pinnedPostId === post.id;
-  const isReadOnly = post.Author.isReadOnly || !!user?.isReadOnly;
+  const checkReadOnly = (obj: any) => !!(obj?.readOnly || obj?.isReadOnly);
+  const authorIsReadOnly = post.Author.id === user?.id ? checkReadOnly(user) : checkReadOnly(post.Author);
+  const retweeterIsReadOnly = post.RetweetedBy ? (post.RetweetedBy.id === user?.id ? checkReadOnly(user) : checkReadOnly(post.RetweetedBy)) : false;
+
+  const isPostReadOnly = post.isRetweet
+    ? retweeterIsReadOnly || authorIsReadOnly
+    : authorIsReadOnly;
 
   // Custom Hooks
-  const actions = usePostActions(post, { onDelete, onRetweet, onPin });
+  const actions = usePostActions(post, { onDelete, onRetweet, onPin }, isReply);
   const comments = useComments(post.id, post.commentsCount);
 
   // Guard Clause : Mode Édition
@@ -136,6 +143,8 @@ export default function Post({
           }
           timestamp={timestampString}
           authorId={post.isRetweet ? post.RetweetedBy?.id || 0 : post.Author.id}
+          onEdit={isReply ? () => setIsEditing(true) : undefined}
+          onDelete={isReply ? actions.requestDelete : undefined}
         />
 
         <PostContent
@@ -146,7 +155,13 @@ export default function Post({
 
         {post.isRetweet && post.originalAuthorUsername && (
           <p className="text-14 text-inactive mt-1">
-            Créé à l'origine par @{post.originalAuthorUsername}
+            Créé à l'origine par{" "}
+            <Link
+              to={`/profile/${post.originalAuthorUsername}`}
+              className="text-primary hover:underline hover:text-primary/80 transition-colors"
+            >
+              @{post.originalAuthorUsername}
+            </Link>
           </p>
         )}
 
@@ -156,12 +171,13 @@ export default function Post({
             isReply={isReply}
             isPinned={isPinned}
             isRetweet={post.isRetweet || false}
-            isReadOnly={isReadOnly}
+            isReadOnly={isPostReadOnly}
             likesCount={actions.likesCount}
             isLiked={actions.isLiked}
             onLike={actions.toggleLike}
             commentsCount={comments.total}
             onToggleComments={comments.toggle}
+            retweetsCount={actions.retweetsCount}
             isRetweeting={actions.isRetweeting}
             isPinning={actions.isPinning}
             isDeleting={actions.isDeleting}
@@ -191,7 +207,7 @@ export default function Post({
           <CommentSection
             postId={post.id}
             comments={comments}
-            isReadOnly={isReadOnly}
+            isReadOnly={isPostReadOnly}
           />
         )}
       </AnimatePresence>

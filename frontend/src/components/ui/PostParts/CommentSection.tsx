@@ -19,7 +19,7 @@ function mapCommentToPostType(comment: any): PostType {
       id: comment.author?.id || 0,
       username: comment.author?.username || "Utilisateur",
       profilePicture: comment.author?.profilePicture,
-      isReadOnly: false,
+      readOnly: comment.author?.readOnly ?? comment.author?.isReadOnly ?? false,
     }
   };
 }
@@ -35,6 +35,7 @@ interface CommentSectionProps {
     fetchNextPage: () => void;
     addComment: (comment: any) => void;
     updateComment: (comment: any) => void;
+    deleteComment: (commentId: number) => void;
   };
 }
 
@@ -62,8 +63,8 @@ export function CommentSection({
         </div>
       )}
 
-      {user && isReadOnly && (
-        <div className="pl-10 w-full mb-2 text-14 text-red-400 italic">
+      {isReadOnly && (
+        <div className="pl-14 w-full mb-2 text-14 text-red-100 bg-red-900/20 py-2 px-4 rounded-md border border-red-500/30 italic">
           Ce profil est en lecture seule. Les commentaires sont désactivés.
         </div>
       )}
@@ -76,6 +77,7 @@ export function CommentSection({
             background="darker"
             post={mapCommentToPostType(comment)}
             onUpdate={comments.updateComment}
+            onDelete={comments.deleteComment}
           />
         ))}
 

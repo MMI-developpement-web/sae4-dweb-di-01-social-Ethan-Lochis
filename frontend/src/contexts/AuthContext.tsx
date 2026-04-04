@@ -12,6 +12,7 @@ interface User {
   location?: string | null;
   pinnedPostId?: number | null;
   isReadOnly?: boolean;
+  readOnly?: boolean;
 }
 
 interface AuthContextType {

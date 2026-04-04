@@ -35,6 +35,10 @@ class AuthController extends AbstractController
                 'email' => $user->getEmail(),
                 'roles' => $user->getRoles(),
                 'profilePicture' => $user->getProfilePicture(),
+                'bio' => $user->getBio(),
+                'location' => $user->getLocation(),
+                'pinnedPostId' => $user->getPinned()?->getId(),
+                'isReadOnly' => $user->isReadOnly(),
             ]
         ]);
     }

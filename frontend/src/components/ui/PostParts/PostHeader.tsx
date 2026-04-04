@@ -4,9 +4,17 @@ interface PostHeaderProps {
   username: string;
   timestamp?: string;
   authorId?: number;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export function PostHeader({ username, timestamp, authorId }: PostHeaderProps) {
+export function PostHeader({
+  username,
+  timestamp,
+  authorId,
+  onEdit,
+  onDelete,
+}: PostHeaderProps) {
   return (
     <div>
       <div className="flex items-baseline justify-between gap-2">
@@ -15,7 +23,12 @@ export function PostHeader({ username, timestamp, authorId }: PostHeaderProps) {
           <span className="text-14 text-gray-400">{timestamp}</span>
         </div>
         {authorId !== undefined && (
-          <PostMenu userId={authorId} username={username} />
+          <PostMenu
+            userId={authorId}
+            username={username}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
         )}
       </div>
       <span className="text-inactive text-14 ">@{username}</span>

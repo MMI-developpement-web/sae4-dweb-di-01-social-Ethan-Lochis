@@ -97,8 +97,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     private ?Post $Pinned = null;
-    #[ORM\JoinColumn(name: 'Following', referencedColumnName: 'id')]
-    #[ORM\InverseJoinColumn(name: 'Followed', referencedColumnName: 'id')]
 
     public function __construct()
     {

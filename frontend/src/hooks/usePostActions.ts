@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
@@ -10,22 +10,25 @@ export interface PostActionCallbacks {
   onPin?: (postId: number, isPinnedNow: boolean) => void;
 }
 
-export function usePostActions(post: PostType, callbacks?: PostActionCallbacks) {
+export function usePostActions(post: PostType, callbacks?: PostActionCallbacks, isReply = false) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const [likesCount, setLikesCount] = useState(post.likesCount || 0);
+  const [retweetsCount, setRetweetsCount] = useState(post.retweetsCount || 0);
   const [isLiked, setIsLiked] = useState(post.isLikedByCurrentUser || false);
 
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRetweeting, setIsRetweeting] = useState(false);
   const [isPinning, setIsPinning] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const isLikingRef = useRef(false);
 
   useEffect(() => {
     setLikesCount(post.likesCount || 0);
+    setRetweetsCount(post.retweetsCount || 0);
     setIsLiked(post.isLikedByCurrentUser || false);
-  }, [post.likesCount, post.isLikedByCurrentUser]);
+  }, [post.likesCount, post.retweetsCount, post.isLikedByCurrentUser]);
 
   const requireAuthOrRedirect = useCallback((): boolean => {
     if (!user) {
@@ -36,8 +39,9 @@ export function usePostActions(post: PostType, callbacks?: PostActionCallbacks) 
   }, [user, navigate]);
 
   const toggleLike = async () => {
-    if (!post.id || !requireAuthOrRedirect()) return;
+    if (!post.id || !requireAuthOrRedirect() || isLikingRef.current) return;
     
+    isLikingRef.current = true;
     const wasLiked = isLiked;
     
     setIsLiked(!wasLiked);
@@ -49,6 +53,8 @@ export function usePostActions(post: PostType, callbacks?: PostActionCallbacks) 
       console.error("Échec du Like:", error);
       setIsLiked(wasLiked);
       setLikesCount(prev => (wasLiked ? prev + 1 : prev - 1));
+    } finally {
+      isLikingRef.current = false;
     }
   };
 
@@ -57,7 +63,8 @@ export function usePostActions(post: PostType, callbacks?: PostActionCallbacks) 
 
     setIsDeleting(true);
     try {
-      await apiFetch(`/posts/${post.id}`, { method: "DELETE" });
+      const url = isReply ? `/posts/comments/${post.id}` : `/posts/${post.id}`;
+      await apiFetch(url, { method: "DELETE" });
       callbacks?.onDelete?.(post.id);
       setIsDeleteDialogOpen(false);
     } catch (error) {
@@ -73,6 +80,7 @@ export function usePostActions(post: PostType, callbacks?: PostActionCallbacks) 
     setIsRetweeting(true);
     try {
       const response = await apiFetch(`/posts/${post.id}/retweet`, { method: "POST" });
+      setRetweetsCount(prev => prev + 1);
       callbacks?.onRetweet?.(response as PostType);
     } catch (error) {
       console.error("Échec du retweet:", error);
@@ -103,6 +111,7 @@ export function usePostActions(post: PostType, callbacks?: PostActionCallbacks) 
     isPinning,
     isDeleteDialogOpen,
     likesCount,
+    retweetsCount,
     isLiked,
     requestDelete: () => setIsDeleteDialogOpen(true),
     cancelDelete: () => setIsDeleteDialogOpen(false),

@@ -18,25 +18,6 @@ interface PostingProps {
   onCancelEdit?: () => void;
 }
 
-function extractContentAndTags(text: string) {
-  if (!text) return { textContent: "", extractedTags: "" };
-
-  const tagsRegex = /^([#@]\S+\s*)+$/;
-  if (tagsRegex.test(text)) {
-    return { textContent: "", extractedTags: text.trim().replace(/\s+/g, " ") };
-  }
-
-  const match = text.match(/^(.*?)(?:\r?\n\r?\n)((?:[#@]\S+\s*)+)$/s);
-  if (match) {
-    return {
-      textContent: match[1],
-      extractedTags: match[2].trim().replace(/\s+/g, " "),
-    };
-  }
-
-  return { textContent: text, extractedTags: "" };
-}
-
 export default function Posting({ 
   onPostCreated,
   isEditing = false,
@@ -48,9 +29,7 @@ export default function Posting({
   onPostEdited,
   onCancelEdit
 }: PostingProps) {
-  const { textContent: parsedContent, extractedTags } = extractContentAndTags(initialContent);
-  const [content, setContent] = useState(parsedContent);
-  const [hashtagsInput, setHashtagsInput] = useState(extractedTags);
+  const [content, setContent] = useState(initialContent);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   
   const initialPreview = initialMediaUrl ? getMediaUrl(initialMediaUrl) : null;
@@ -125,19 +104,10 @@ export default function Posting({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!content.trim() && !hashtagsInput.trim()) return;
+    if (!content.trim()) return;
 
     setError(null);
-    let finalContent = content.trim();
-
-    if (hashtagsInput.trim()) {
-      const formattedHashtags = hashtagsInput
-        .split(/[,\s]+/)
-        .filter(tag => tag.trim() !== "")
-        .map(tag => (tag.startsWith("#") || tag.startsWith("@")) ? tag : `#${tag}`)
-        .join(" ");
-      finalContent = finalContent ? `${finalContent}\n\n${formattedHashtags}` : formattedHashtags;
-    }
+    const finalContent = content.trim();
 
     const { data, error: submitError } = await submitAction(finalContent, selectedFile, mediaRemoved);
 
@@ -148,7 +118,6 @@ export default function Posting({
 
     if (!isEditing) {
       setContent("");
-      setHashtagsInput("");
       setSelectedFile(null);
       setPreview(null);
       setPreviewType(null);
@@ -188,15 +157,6 @@ export default function Posting({
         placeholder={variant === "comment" ? "Write a comment..." : "What's on your mind?"}
         rows={isEditing ? 4 : (variant === "comment" ? 2 : 5)}
         className="shrink w-full resize-none rounded-lg border border-fg p-3 text-sm outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-gray-400"
-      />
-
-      {/* Input optionnel pour les hashtags */}
-      <input
-        type="text"
-        value={hashtagsInput}
-        onChange={(e) => setHashtagsInput(e.target.value)}
-        placeholder="Ajouter des hashtags ou @mentions (ex: react, @user)"
-        className="w-full rounded-lg border border-fg p-2 text-sm outline-none focus:ring-2 focus:ring-primary text-fg bg-bg-lighter placeholder:text-gray-400"
       />
 
       {/* Aperçu ou Input file si non comment */}

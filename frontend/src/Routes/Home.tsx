@@ -24,10 +24,11 @@ export default function Home() {
     const saved = localStorage.getItem("feed_refresh_interval");
     return saved ? parseInt(saved, 10) : 0;
   });
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const limit = 7;
   const isFetchingRef = useRef(false);
   const hasMoreRef = useRef(true);
+  const postsRef = useRef<PostType[]>([]);
 
   // Quand l'utilisateur change la valeur, on sauvegarde dans le localStorage
   const handleIntervalChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -46,8 +47,7 @@ export default function Home() {
         setLoading(() => (reset ? true : false));
         setLoadingMore(() => (reset ? false : true));
 
-        // Use posts.length only if not resetting
-        const currentOffset = reset ? 0 : posts.length;
+        const currentOffset = reset ? 0 : postsRef.current.length;
 
         const data = await apiFetch<PostType[]>(
           `/posts?limit=${limit}&offset=${currentOffset}&feed=${feed}`,
@@ -57,13 +57,17 @@ export default function Home() {
         setHasMore(more);
         hasMoreRef.current = more;
 
-        // Filter out posts that already exist to prevent duplicate key warnings
         setPosts((prev) => {
-          if (reset) return data;
+          if (reset) {
+            postsRef.current = data;
+            return data;
+          }
 
           const existingIds = new Set(prev.map((p) => p.id));
           const newPosts = data.filter((p) => !existingIds.has(p.id));
-          return [...prev, ...newPosts];
+          const result = [...prev, ...newPosts];
+          postsRef.current = result;
+          return result;
         });
       } catch (err: any) {
         setError(err.message || "Erreur lors du chargement des posts");
@@ -73,7 +77,7 @@ export default function Home() {
         isFetchingRef.current = false;
       }
     },
-    [feed, posts.length],
+    [feed],
   );
 
   useEffect(() => {
@@ -145,7 +149,7 @@ export default function Home() {
       </header>
 
       <main className="pb-24 lg:pb-0 lg:pl-56">
-        <div className="mx-auto flex max-w-2xl flex-col gap-5 px-6 py-4 sm:px-8 sm:py-6 text-fg">
+        <div className="mx-auto flex max-w-2xl flex-col gap-5 px-4 py-4 sm:px-8 sm:py-6 text-fg">
           <section className="hidden sm:block">
             {user ? (
               <Posting onPostCreated={handlePostCreated} />
@@ -238,7 +242,7 @@ export default function Home() {
             {!error &&
               posts.map((post, index) => (
                 <motion.div
-                  key={`${post.id}-${index}`}
+                  key={post.id}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{
@@ -254,7 +258,7 @@ export default function Home() {
                     onDelete={handlePostDeleted}
                     onPin={(id, isPinnedNow) => {
                       if (user) {
-                        user.pinnedPostId = isPinnedNow ? id : undefined;
+                        updateUser({ ...user, pinnedPostId: isPinnedNow ? id : undefined });
                       }
                       fetchPosts(true);
                     }}

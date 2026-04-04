@@ -7,12 +7,13 @@ import BlockedUsersModal from "../components/ui/BlockedUsersModal";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
 import { IconSpinner } from "../components/ui/Icons";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { PostType } from "../types/post";
 
 
 export default function Profile() {
+  const [profileUser, setProfileUser] = useState<any>(null);
   const [posts, setPosts] = useState<PostType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,8 +21,11 @@ export default function Profile() {
   const [followerCount, setFollowerCount] = useState(0);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isBlockedModalOpen, setIsBlockedModalOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const navigate = useNavigate();
+  const { username } = useParams<{ username: string }>();
+  
+  const isCurrentUser = !username || username === user?.username;
 
   const handleLogout = () => {
     logout();
@@ -33,73 +37,80 @@ export default function Profile() {
   };
 
   useEffect(() => {
-  const fetchUserData = async () => {
-    if (!user) {
-      setPosts([]);
-      setLoading(false);
-      return;
-    }
+    const fetchUserData = async () => {
+      if (!user && isCurrentUser) {
+        setProfileUser(null);
+        setPosts([]);
+        setLoading(false);
+        return;
+      }
 
-    setLoading(true);
-    try {
-      // Fetch user stats (following/followers)
-      const stats = await apiFetch<{
-        user: any;
-        followedIds: number[];
-        followingCount: number;
-        followerCount: number;
-      }>("/users/me");
-      
-      setFollowingCount(stats.followingCount);
-      setFollowerCount(stats.followerCount);
+      setLoading(true);
+      setError(null);
+      try {
+        const endpoint = isCurrentUser ? "/users/me" : `/users/username/${encodeURIComponent(username!)}`;
+        const stats = await apiFetch<{
+          user: any;
+          followedIds: number[];
+          followingCount: number;
+          followerCount: number;
+        }>(endpoint);
+        
+        setProfileUser(stats.user);
+        setFollowingCount(stats.followingCount);
+        setFollowerCount(stats.followerCount);
 
-      // Fetch user posts
-      const postsData = await apiFetch<PostType[]>(`/posts/user/${user.id}`);
-      
-      const sortedPosts = [...postsData].sort((a, b) => {
-        if (a.id === user.pinnedPostId) return -1;
-        if (b.id === user.pinnedPostId) return 1;
-        return 0;
-      });
-      
-      setPosts(sortedPosts);
-    } catch (err: any) {
-      setError(err.message || "Erreur lors du chargement");
-    } finally {
-      setLoading(false);
-    }
-  };
+        const postsData = await apiFetch<PostType[]>(`/posts/user/${stats.user.id}`);
+        
+        const sortedPosts = [...postsData].sort((a, b) => {
+          if (a.id === stats.user.pinnedPostId) return -1;
+          if (b.id === stats.user.pinnedPostId) return 1;
+          return 0;
+        });
+        
+        setPosts(sortedPosts);
+      } catch (err: any) {
+        setError(err.message || "Erreur lors du chargement");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  fetchUserData();
-}, [user]);
+    fetchUserData();
+  }, [user, username, isCurrentUser]);
 
   return (
     <div className="min-h-screen bg-bg flex flex-col">
       <Navbar />
 
-      <main className="flex-1 max-w-150 w-full mx-auto bg-bg-lighter min-h-screen p-4 pb-24 sm:p-8 lg:p-12 lg:pb-12 shadow-lg">
-        {user ? (
+      <main className="flex-1 max-w-2xl w-full mx-auto bg-bg-lighter min-h-screen p-4 pb-24 sm:p-8 lg:p-12 lg:pb-12 shadow-lg">
+        {profileUser ? (
           <ProfileHeader
-            username={user.username}
-            avatarUrl={user.profilePicture || undefined}
-            bio={user.bio}
-            location={user.location}
+            username={profileUser.username}
+            avatarUrl={profileUser.profilePicture || undefined}
+            bio={profileUser.bio}
+            location={profileUser.location}
             postCount={posts.length}
             followingCount={followingCount}
             followerCount={followerCount}
-            onLogout={handleLogout}
-            onEditProfile={() => setIsEditModalOpen(true)}
-            onViewBlocked={() => setIsBlockedModalOpen(true)}
+            userId={profileUser.id}
+            onLogout={isCurrentUser ? handleLogout : undefined}
+            onEditProfile={isCurrentUser ? () => setIsEditModalOpen(true) : undefined}
+            onViewBlocked={isCurrentUser ? () => setIsBlockedModalOpen(true) : undefined}
           />
-        ) : (
+        ) : !loading && error ? (
+           <div className="p-8 text-center text-red-500">
+             {error}
+           </div>
+        ) : !loading && isCurrentUser ? (
           <div className="p-8 text-center text-gray-500">
             Veuillez vous connecter pour voir votre profil.
           </div>
-        )}
+        ) : null}
 
         <section className="mt-2" aria-label="Publications du profil">
           <h2 className="px-6 py-4 text-xl font-bold border-b text-fg">
-            Tous vos posts
+            Publicactions
           </h2>
 
           {loading && (
@@ -118,7 +129,7 @@ export default function Profile() {
 
           {!loading && !error && posts.length === 0 && (
             <div className="p-8 text-center text-fg">
-              Vous n'avez pas encore publié de post.
+              Aucun post n'a été publié.
             </div>
           )}
 
@@ -142,14 +153,16 @@ export default function Profile() {
                     onDelete={handlePostDeleted}
                     onPin={(id, isPinnedNow) => {
                       if (user) {
-                        user.pinnedPostId = isPinnedNow ? id : undefined;
+                        const newPinnedId = isPinnedNow ? id : undefined;
+                        updateUser({ ...user, pinnedPostId: newPinnedId });
                       }
                       // Forcer un rechargement pour ré-appliquer le tri
                       setLoading(true);
+                      const pinnedId = isPinnedNow ? id : undefined;
                       setTimeout(() => setPosts(prev => {
                         const newPosts = [...prev].sort((a, b) => {
-                          if (a.id === user?.pinnedPostId) return -1;
-                          if (b.id === user?.pinnedPostId) return 1;
+                          if (a.id === pinnedId) return -1;
+                          if (b.id === pinnedId) return 1;
                           return 0;
                         });
                         setLoading(false);

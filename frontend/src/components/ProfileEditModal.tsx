@@ -29,7 +29,7 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
     if (isOpen && user) {
       setBio(user.bio || "");
       setLocation(user.location || "");
-      setIsReadOnly(user.isReadOnly || false);
+      setIsReadOnly(user.isReadOnly || user.readOnly || false);
       setPreview(user.profilePicture ? getMediaUrl(user.profilePicture) : null);
       setSelectedFile(null);
       setError(null);
@@ -143,12 +143,18 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
           <div className="flex flex-col gap-2">
             <Label htmlFor="profilePicture">Photo de profil</Label>
             {preview && (
-              <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-200">
-                <img src={preview} alt="Aperçu" className="w-full h-full object-cover" />
+              <div className="relative w-24 h-24">
+                <div className="w-full h-full rounded-full overflow-hidden bg-gray-200">
+                  <img
+                    src={preview}
+                    alt="Aperçu"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={handleRemoveProfilePicture}
-                  className="absolute top-0 right-0 bg-red-500 p-1 rounded-full text-white hover:bg-red-600"
+                  className="absolute -top-1 -right-1 bg-red-500 p-1 rounded-full text-white hover:bg-red-600 shadow-md z-10"
                   aria-label="Supprimer la photo"
                 >
                   <IconClose className="size-4" />
@@ -218,9 +224,10 @@ export default function ProfileEditModal({ isOpen, onClose }: ProfileEditModalPr
           <div className="flex gap-4 justify-end mt-4">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               onClick={onClose}
               disabled={loading}
+              className="bg-bg text-fg hover:bg-white/5"
             >
               Annuler
             </Button>
